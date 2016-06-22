@@ -16,6 +16,15 @@ within your code, or do
 Please visit the [api documentation](http://docs.testapi2127.apiary.io/) to find out how to use the api and
 what values does the api provide as a response to lookup requests
 
+### How to get an API key
+
+You generally are not required to have an api key to use the api, though the number of requests you will be able
+to issue will be throttled if they exceed a certain number.
+
+Without an API key you will not be able to perform batch requests as well.
+
+To obtain an API key please [contact us](mailto:support@saphetor.com)
+
 ### Using the client in your code
 
 Using the api client is quite straightforward. Just install the api client package and from within
@@ -25,6 +34,8 @@ your code use
     # api key is not required for single variant lookups
     api_key = 'Your token'
     api = VariantAPIClient(api_key)
+    # if you don't have an api key use
+    # api = VariantAPIClient()
     # fetch information about a variant into a dictionary
     result = api.lookup('chr19:20082943:1:G', ref_genome=1019)
     # access results e.g. the sequence around the variant
