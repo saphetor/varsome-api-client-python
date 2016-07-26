@@ -42,17 +42,12 @@ for record in vcf_reader:
        v = v + str(elem)
 
     # Prepare and execute a lookup call to the Variant API and obtain the response in json format
-    api = VariantAPIClient()
-    result = api.lookup(v, ref_genome=ref_genome)
 
-    # XXX SHOULD BE THIS:
-    data = json.load(result)
-    # TEMPORARILY TEST WITH THIS:
-    with open('j.json') as data_file:    
-       data = json.load(data_file)
+    api = VariantAPIClient()
+    data = api.lookup(v, ref_genome=ref_genome)
 
     # Check whether there is a field containing gene information in the response.
-    if (data['genes'] is not None):
+    if ('genes'  in data.keys()):
        # Concatenate all gene symbols into a comma-separated string
        gene_str = ""
        for g in data['genes'][:-1]:
