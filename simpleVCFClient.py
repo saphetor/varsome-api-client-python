@@ -49,14 +49,12 @@ def main(argv):
 	ref_genome = args.g if args.g is not None else ref_genome
 	no_batch = args.nb
 
-	print("Input VCF file:", infile)
-	print("Output VCF file:", outfile)
-	print("API Key:", api_key)
-	print("Reference genome:", ref_genome)
-	print("No batch:", no_batch)
+	#print("Input VCF file:", infile)
+	#print("Output VCF file:", outfile)
+	#print("API Key:", api_key)
+	#print("Reference genome:", ref_genome)
+	#print("No batch:", no_batch)
 
-	exit()
-	
 	# Open and load vcf file into vfc reader
 	vcf_reader = vcf.Reader(filename=infile, encoding='utf8')
 
@@ -110,7 +108,7 @@ def main(argv):
 			else:
 				# We have reached the limit of variants to batch in the request, or the end of the input file
 				# Execute request, process the output and write resulting records in the output VCF file
-				api = VariantAPIClient()
+				api = VariantAPIClient(api_key)
 				# print (batch_variant_string)
 				batch_data = api.batch_lookup(batch_variant_string, ref_genome=ref_genome)
 				# print(json.dumps(result, indent=4, sort_keys=True) if result else "No result")
@@ -135,7 +133,7 @@ def main(argv):
 		else: 
 			if (record is not None):
 				# Perform a single variant, process the output, and write the resulting record in the ouput VCF file.
-				api = VariantAPIClient()
+				api = VariantAPIClient(api_key)
 				data = api.lookup(variant_string, ref_genome=ref_genome)
 				process_single_variant_response_data(record, data, vcf_writer)
 				print("Continuing non-batch execution")
