@@ -31,29 +31,31 @@ def main(argv):
 	infile = ''
 	outfile = ''
 	do_batch = True
+	no_batch = False
 	input_error = False
 
-	help_string = "Usage is:\n   simpleVCFClient.py <input VCF file name> <output VCF file name> [-nobatch]\n   where -nobatch instructs the script to execute single variant queries instead of batching them in groups, which is the default and more efficient way\n"
-	if (len(sys.argv) == 3):
-		infile = sys.argv[1]
-		outfile = sys.argv[2]
-	elif (len(sys.argv) == 4):
-		infile = sys.argv[1]
-		outfile = sys.argv[2]
-		if (sys.argv[3] == "-nobatch"):
-			do_batch = False
-		else:
-			input_error = True
-	else:
-		input_error = True
-	
-	if (input_error):
-		print(help_string);
-		sys.exit()
+	parser = argparse.ArgumentParser(description='Simple VCF Client application')
+	parser.add_argument('-i', help='Input VCF file', type=str, metavar='Input File', required=True)
+	parser.add_argument('-o', help='Output VCF file', type=str, metavar='Output File', required=True)
+	parser.add_argument('-k', help='Your key to the API', type=str, metavar='API Key', required=False)
+	parser.add_argument('-g', help='Reference genome either 1019 (default) or 1038', type=int, metavar='Reference Genome',
+                        	required=False, default=1019)
+	parser.add_argument('-nb', help="Do not do batch requests", action='store_true')
+
+	args = parser.parse_args()
+	infile = args.i
+	outfile = args.o
+	api_key = args.k
+	ref_genome = args.g if args.g is not None else ref_genome
+	no_batch = args.nb
 
 	print("Input VCF file:", infile)
 	print("Output VCF file:", outfile)
-	print("Do batch:", do_batch)
+	print("API Key:", api_key)
+	print("Reference genome:", ref_genome)
+	print("No batch:", no_batch)
+
+	exit()
 	
 	# Open and load vcf file into vfc reader
 	vcf_reader = vcf.Reader(filename=infile, encoding='utf8')
