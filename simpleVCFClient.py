@@ -21,16 +21,15 @@ from variantapi.client import VariantAPIClient
 from vcf.parser import _Info as VcfInfo, field_counts as vcf_field_counts
 
 # Declare reference genome as a global variable
-ref_genome = 1019
+_ref_genome = 1019
 
 # Declare the limit of variants to lookup in each batch
-batch_limit = 3 
+_batch_limit = 3 
 
 def main(argv):
 	# Read script arguments
 	infile = ''
 	outfile = ''
-	do_batch = True
 	no_batch = False
 	input_error = False
 
@@ -46,45 +45,36 @@ def main(argv):
 	infile = args.i
 	outfile = args.o
 	api_key = args.k
-	ref_genome = args.g if args.g is not None else ref_genome
+	ref_genome = args.g if args.g is not None else _ref_genome
 	no_batch = args.nb
 
-	#print("Input VCF file:", infile)
-	#print("Output VCF file:", outfile)
-	#print("API Key:", api_key)
-	#print("Reference genome:", ref_genome)
-	#print("No batch:", no_batch)
-
 	# Open and load vcf file into vfc reader
+	print ("Reading input file ", infile)
 	vcf_reader = vcf.Reader(filename=infile, encoding='utf8')
 
 	# Add a new GENE info field in the metadata description, so that we may store such data for each record
 	vcf_reader.infos['GENE'] = VcfInfo( 'GENE', ".", 'String', 'Concatenated list of GENE sumbols',"","")
 	
 	# Prepare output for writing.
+	print ("Opening output file ", outfile)
 	vcf_writer = vcf.Writer(open(outfile, 'w'), vcf_reader, lineterminator='\n')
 	
-	# Initialize a counter for the number of rows in each batch lookup.
-	batch_counter = 0;
-
-	# A string to hold the entire array of variant descriptions for the batch lookup.
-	batch_variant_string = ""
+	# An array to hold the variant descriptions for the batch lookup.
+	batch_variant_array = []
 	
         # An array to hold all the records that will be used for each batch lookup
 	batch_records = []
 
-	total_counter = 0
-	# Iterate throught all the records read from the input vcf file:
+	# Count rows processed
+	counter = 0
+
+	print("Start parsing input file")
+	# Iterate throught all the records read from the input vcf file
 	while True:
 		try: 
 			record = next(vcf_reader)
-		except StopIteration as e:
-			# Reached end of input VCF file
-			record = None
 
-		if (record is not None):
 			# Prepare a variant description string for this record
-			total_counter += 1
 			variant_string = record.CHROM + ":" + str(record.POS) + ":"
 			if (record.REF is not None):
 				variant_string += str(record.REF)
@@ -95,38 +85,35 @@ def main(argv):
 			# XXX multiple values per row, in whcih case ALT would be an array with more elements, e.g. ALT=["A", "CCT", "C"]
 			# XXX Such a row would give rise to more than one rows in the output VCF file produced.
 
-		# If we are performing batch lookups
-		if (do_batch):
-			if (batch_counter < batch_limit and record is not None):
-				# Continue building the string for the batch lookup. The string consists of variant descriptors separated with a white space
-				if (batch_counter > 0):
-					batch_variant_string += " "
-				batch_variant_string += variant_string
-				batch_counter += 1
+		except StopIteration as e:
+			# Reached end of input VCF file, no new record was read
+			record = None
+
+		# If we are performing batch lookups...
+		if (not no_batch):
+			# Add new record (if it exists) and resulting variant description to batch arrays:
+			if (record is not None):
 				batch_records.append(record)
-				# print("Continuing batch execution preparation with string:", batch_variant_string)
-			else:
-				# We have reached the limit of variants to batch in the request, or the end of the input file
-				# Execute request, process the output and write resulting records in the output VCF file
+				batch_variant_array.append(variant_string)
+
+			# Check if we  have reached the limit of variants for the batch request, or the end of the input file.
+			if (len(batch_variant_array) == _batch_limit or record is None):
+				# Execute request, process the output and write resulting records in the output VCF file.
 				api = VariantAPIClient(api_key)
-				# print (batch_variant_string)
-				batch_data = api.batch_lookup(batch_variant_string, ref_genome=ref_genome)
-				# print(json.dumps(result, indent=4, sort_keys=True) if result else "No result")
+				batch_data = api.batch_lookup(batch_variant_array, ref_genome=ref_genome)
 		
 				# Process response, variant by variant
-				counter = 0
+				batch_counter = 0
 				for data in batch_data:
-					process_single_variant_response_data(batch_records[counter], data, vcf_writer)
-					counter += 1
+					process_single_variant_response_data(batch_records[batch_counter], data, vcf_writer)
+					batch_counter += 1
 		
 				if (record is not None):
-					# Reset counter and array of records
-					batch_counter = 0
+					# Reset arrays
 					batch_records = []
-					print("Finished batch execution step")
+					batch_variant_array = []
 				else:
 					# Reached the end of the file, finish
-					print("Completed batch execution, exiting")
 					break
 
 		# If we are performing individual lookups for each variant (which is not recommended for performance issues), execute the lookup now and process the outcome
@@ -136,11 +123,15 @@ def main(argv):
 				api = VariantAPIClient(api_key)
 				data = api.lookup(variant_string, ref_genome=ref_genome)
 				process_single_variant_response_data(record, data, vcf_writer)
-				print("Continuing non-batch execution")
 			else:
 				# Reached the end of the file, finish
-				print("Finished non-batch execution, exiting")
 				break
+
+		counter += 1 
+		if (counter % 1000 == 0):
+			print ("Read ", counter, " rows")
+
+	print ("Finished reading ", counter, " rows, exiting")
 	
 def process_single_variant_response_data(record, data, vcf_writer):
 	
@@ -151,7 +142,6 @@ def process_single_variant_response_data(record, data, vcf_writer):
 		for g in data['genes'][:-1]:
 			gene_str = gene_str + g['symbol'] + ","
 		gene_str = gene_str + data['genes'][-1]['symbol']
-		# print(gene_str)
 		# Add gene entry in the INFO field, containing the string.
 		record.INFO['GENE'] = gene_str
 			
