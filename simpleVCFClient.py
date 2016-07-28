@@ -23,7 +23,7 @@ from vcf.parser import _Info as VcfInfo, field_counts as vcf_field_counts
 # Declare reference genome as a global variable
 _ref_genome = 1019
 
-# Declare the limit of variants to lookup in each batch
+# Declare the limit of variants we want to lookup in each batch request
 _batch_limit = 3 
 
 def main(argv):
@@ -68,22 +68,35 @@ def main(argv):
 	# Count rows processed
 	counter = 0
 
+	# Initialize client connection to API
+	api = VariantAPIClient(api_key)
+	if (api is None):
+		print("Failed to connect to API")
+		sys.exit()
+
 	print("Start parsing input file")
+
 	# Iterate throught all the records read from the input vcf file
 	while True:
 		try: 
 			record = next(vcf_reader)
 
+			# Create an array to store the variant description strings that are produced from this record. Typically only one variant will correspond to a record,
+			# however there may be more than one if the record contains an array with more than one ALT values. In this case, we will be saving a separate new
+			# row in the VCF file, corresponding to one single variant.
+			variant_string_array = []
+
 			# Prepare a variant description string for this record
-			variant_string = record.CHROM + ":" + str(record.POS) + ":"
+			variant_chromposref = record.CHROM + ":" + str(record.POS) + ":"
 			if (record.REF is not None):
-				variant_string += str(record.REF)
-			variant_string += ":"
+				variant_chromposref += str(record.REF)
+			variant_chromposref += ":"
 			if (record.ALT is not None):
-				variant_string += str(record.ALT[0])
-                	# XXX Note that here we assume a single variant per row, i.e. the ALT value will be an array with just one element. Must make this more generic to allow
-			# XXX multiple values per row, in whcih case ALT would be an array with more elements, e.g. ALT=["A", "CCT", "C"]
-			# XXX Such a row would give rise to more than one rows in the output VCF file produced.
+				for alt in record.ALT:
+					variant_string = variant_chromposref + str(alt)
+					variant_string_array.append(variant_string)
+			else:
+				variant_string_array.append(variant_chromposref)
 
 		except StopIteration as e:
 			# Reached end of input VCF file, no new record was read
@@ -91,21 +104,27 @@ def main(argv):
 
 		# If we are performing batch lookups...
 		if (not no_batch):
-			# Add new record (if it exists) and resulting variant description to batch arrays:
+			# Add new record (if it exists) and resulting variant descriptions to batch arrays:
 			if (record is not None):
-				batch_records.append(record)
-				batch_variant_array.append(variant_string)
+				# Insert the record as many times in the array as we have variants for this record, to keep the two arrays juxtaposed.
+				for i in range(len(variant_string_array)):
+					batch_records.append(record)
+				batch_variant_array.extend(variant_string_array)
 
-			# Check if we  have reached the limit of variants for the batch request, or the end of the input file.
-			if (len(batch_variant_array) == _batch_limit or record is None):
+			# Check if we have reached (or slightly crossed) the limit of variants we want for the batch request, or the end of the input file.
+			# Note: In this implementation we may cross the limit if the last record read contained more than one variants. This is OK.
+			if (len(batch_variant_array) >= _batch_limit or record is None):
 				# Execute request, process the output and write resulting records in the output VCF file.
-				api = VariantAPIClient(api_key)
+				print ("API BATCH LOOKUP")
+				print(batch_variant_array)
+				print(ref_genome)
 				batch_data = api.batch_lookup(batch_variant_array, ref_genome=ref_genome)
+				print ("FINISHED")
 		
 				# Process response, variant by variant
 				batch_counter = 0
 				for data in batch_data:
-					process_single_variant_response_data(batch_records[batch_counter], data, vcf_writer)
+					process_single_variant_response_data(batch_records[batch_counter], data, batch_variant_array[batch_counter], vcf_writer)
 					batch_counter += 1
 		
 				if (record is not None):
@@ -120,9 +139,11 @@ def main(argv):
 		else: 
 			if (record is not None):
 				# Perform a single variant, process the output, and write the resulting record in the ouput VCF file.
-				api = VariantAPIClient(api_key)
-				data = api.lookup(variant_string, ref_genome=ref_genome)
-				process_single_variant_response_data(record, data, vcf_writer)
+				for variant_string in variant_string_array:
+					print ("API LOOKUP")
+					data = api.lookup(variant_string, ref_genome=ref_genome)
+					print ("FINISHED")
+					process_single_variant_response_data(record, data, variant_string, vcf_writer)
 			else:
 				# Reached the end of the file, finish
 				break
@@ -133,20 +154,49 @@ def main(argv):
 
 	print ("Finished reading ", counter, " rows, exiting")
 	
-def process_single_variant_response_data(record, data, vcf_writer):
-	
+# Processes a single variant description record and writes the resulting new record in the output VCF file
+# Input:
+#  record: The record object, as read from the input VCF file.
+#  data: The data received from the variant API for this specific record. Note that if the record contained more than one
+#        elements in the ALT field, and thus corresponded to more than one variants, we query the variant API once for each 
+#        variant. The input parameter "record_counter" tells us which one of the records we are handling here.
+#  variant_string: The variant string. We need this so that if this is a new record that resulted from
+#        spliting a multi-variant input row into several rows, we will keep only the ALT field for this varian..
+#  vcf_writer: The output VCF file handler object
+#
+def process_single_variant_response_data(record, data, variant_string, vcf_writer):
+
 	# Check whether there is a field containing gene information in the response.
-	if ('genes' in data.keys()):
+	if ('genes' in data.keys() and data['genes']):
 		# Concatenate all gene symbols into a comma-separated string
 		gene_str = ""
 		for g in data['genes'][:-1]:
 			gene_str = gene_str + g['symbol'] + ","
+		#print("variant_string:\n", variant_string)
+		#print("Data:\n", data)
+		#print("Data[genes]\n", data['genes'])
 		gene_str = gene_str + data['genes'][-1]['symbol']
+
 		# Add gene entry in the INFO field, containing the string.
 		record.INFO['GENE'] = gene_str
+
+	# If the ALT field has more than one elements, only keep the element ALT element of the specific variant
+	print ("Record.ALT:", record.ALT)
+	if (record.ALT is not None and (len(record.ALT) > 1)):
+		alt_string_array = re.split(r":", variant_string)
+		# Temporarily store whole ALT array
+		tmp_alt_array = record.ALT
+		record.ALT = [alt_string_array[-1]]
 			
-	# Write the record in the output vcf file.
-	vcf_writer.write_record(record)
+		# Write the record in the output vcf file.
+		vcf_writer.write_record(record)
+
+		# Replace entire record array
+		record.ALT = tmp_alt_array
+
+	else:
+		# Write the record as is in the output vcf file.
+		vcf_writer.write_record(record)
 
 
 if __name__ == '__main__':
