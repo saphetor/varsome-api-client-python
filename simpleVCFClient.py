@@ -49,10 +49,6 @@ class Variant_lookup_data(object):
         self.variant_string=variant_string
         self.alt_value=alt_value
 
-def make_variant_lookup_data(vcf_record,variant_string,alt_value):
-    variant_lookup_data = Variant_lookup_data(vcf_record,variant_string,alt_value)
-    return variant_lookup_data
-
 
 def main(argv):
 
