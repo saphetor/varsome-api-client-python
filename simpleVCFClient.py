@@ -21,11 +21,13 @@ import argparse
 import json
 import logging
 import vcf
-import sys, getopt
 import re
+import sys
 from sys import argv
 from variantapi.client import VariantAPIClient
 from vcf.parser import _Info as VcfInfo, field_counts as vcf_field_counts
+
+__author__ = 'stephanos-androutsellis'
 
 # Declare reference genome as a global variable
 _ref_genome = 1019
@@ -34,7 +36,7 @@ _ref_genome = 1019
 _batch_limit = 3 
 
 
-# A class to use for batch lookups. It keeps, for each variant in the batch request:
+# A class to store variant lookup data:
 # - The record from the input VCF file
 # - The variant string
 # - The corresponding ALT value (convenient for multi-variant records)
@@ -43,7 +45,7 @@ class Variant_lookup_data(object):
     variant_string = ""
     alt_value = ""
 
-    # The class "constructor"/ - It's actually an initializer 
+    # The class constructor/initializer 
     def __init__(self,vcf_record,variant_string,alt_value):
         self.vcf_record=vcf_record
         self.variant_string=variant_string
@@ -51,7 +53,6 @@ class Variant_lookup_data(object):
 
 
 def main(argv):
-
 	# Read and parse arguments
 	infile = ''
 	outfile = ''
@@ -172,7 +173,6 @@ def main(argv):
 # Output:
 #    None as such, but new elements are appended to the input array variant_lookup_data_array
 def variant_lookup_data_from_vcf_record(vcf_record, variant_lookup_data_array):
-
 	# Concatenate chromosome, position and reference, separated by ":" characters
 	variant_chromposref = vcf_record.CHROM + ":" + str(vcf_record.POS) + ":"
 	if (vcf_record.REF is not None):
@@ -199,10 +199,7 @@ def variant_lookup_data_from_vcf_record(vcf_record, variant_lookup_data_array):
 #  vcf_writer: The output VCF file handler object
 # Output:
 #    None
-#
 def process_single_variant_response_data(variant_lookup_data, response_data, vcf_writer):
-
-
 	# Check whether there is a field containing gene information in the response.
 	if ('genes' in response_data.keys() and response_data['genes']):
 		# Concatenate all gene symbols into a comma-separated string
@@ -223,4 +220,3 @@ def process_single_variant_response_data(variant_lookup_data, response_data, vcf
 
 if __name__ == '__main__':
     main(argv)
-
