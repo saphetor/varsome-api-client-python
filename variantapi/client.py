@@ -88,7 +88,7 @@ class VariantAPIClient(VariantAPIClientBase):
     _max_variants_per_batch = 8000
 
     def __init__(self, api_key=None):
-        super().__init__(api_key)
+        super(VariantAPIClient, self).__init__(api_key)
 
     def schema(self):
         return self.get(self.schema_lookup_path)
