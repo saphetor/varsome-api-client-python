@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# A simple client application that load the following:
+# A simple client application that does the following:
 # - Loads a VCF file,
 # - For each entry in the file, performs a lookup to the Saphetor Variant API. 
 #   The call can be either in batch mode (the default and more efficient way, 
