@@ -3,7 +3,8 @@ import logging
 import requests
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 
-
+# Set DEBUG variable to affect ceertain parameters
+_debug = False
 
 class VariantApiException(Exception):
     ERROR_CODES = {
@@ -35,7 +36,7 @@ class VariantApiException(Exception):
 
 class VariantAPIClientBase(object):
 
-    _api_url = 'https://api.varsome.com'
+    _api_url = 'https://api.varsome.com' if _debug == False else 'https://dev-api.varsome.com'
     _accepted_methods = ('GET', 'POST')
 
     def __init__(self, api_key=None):
