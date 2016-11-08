@@ -13,7 +13,7 @@ within your code, or do
 
 ### API Documentation
 
-Please visit the [api documentation](http://docs.testapi2127.apiary.io/) to find out how to use the api and
+Please visit the [api documentation](http://docs.varsome.apiary.io) to find out how to use the api and
 what values does the api provide as a response to lookup requests
 
 ### How to get an API key
