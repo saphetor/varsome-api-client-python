@@ -86,7 +86,7 @@ class VariantAPIClient(VariantAPIClientBase):
     schema_lookup_path = "/lookup/schema/"
     lookup_path = "/lookup/%s/%s"
     batch_lookup_path = "/lookup/batch/%s"
-    _max_variants_per_batch = 8000
+    _max_variants_per_batch = 1000
 
     def __init__(self, api_key=None):
         super(VariantAPIClient, self).__init__(api_key)
