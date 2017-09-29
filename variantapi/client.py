@@ -3,8 +3,9 @@ import logging
 import requests
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 
-# Set DEBUG variable to affect ceertain parameters
+# Set DEBUG variable to affect certain parameters
 _debug = False
+
 
 class VariantApiException(Exception):
     ERROR_CODES = {
@@ -35,8 +36,7 @@ class VariantApiException(Exception):
 
 
 class VariantAPIClientBase(object):
-
-    _api_url = 'https://api.varsome.com' if _debug == False else 'https://dev-api.varsome.com'
+    _api_url = 'https://api.varsome.com' if not _debug else 'https://dev-api.varsome.com'
     _accepted_methods = ('GET', 'POST')
 
     def __init__(self, api_key=None):
@@ -47,14 +47,14 @@ class VariantAPIClientBase(object):
         self.session = requests.Session()
         self.session.headers.update(self._headers)
 
-    def _make_request(self, path, method="GET", data=None, json_data=None):
+    def _make_request(self, path, method="GET", params=None, json_data=None):
         if method not in self._accepted_methods:
             raise VariantApiException('', "Unsupported method %s" % method)
         try:
             if method == "GET":
-                r = self.session.get(self._api_url + path, data=data)
+                r = self.session.get(self._api_url + path, params=params)
             if method == "POST":
-                r = self.session.post(self._api_url + path, data=data, json=json_data,
+                r = self.session.post(self._api_url + path, params=params, json=json_data,
                                       headers={'Content-Type': 'application/json'} if json_data is not None else None)
                 logging.debug('Time between request and response %s' % r.elapsed)
                 logging.debug('Content length %s' % len(r.content))
@@ -73,12 +73,12 @@ class VariantAPIClientBase(object):
         except RequestException as e:
             raise VariantApiException('', "Unknown error %s" % e.response)
 
-    def get(self, path, data=None):
-        response = self._make_request(path, "GET", data=data)
+    def get(self, path, params=None):
+        response = self._make_request(path, "GET", params=params)
         return response.json()
 
-    def post(self, path, data=None, json_data=None):
-        response = self._make_request(path, "POST", data=data, json_data=json_data)
+    def post(self, path, params=None, json_data=None):
+        response = self._make_request(path, "POST", params=params, json_data=json_data)
         return response.json()
 
 
@@ -86,21 +86,38 @@ class VariantAPIClient(VariantAPIClientBase):
     schema_lookup_path = "/lookup/schema/"
     lookup_path = "/lookup/%s/%s"
     batch_lookup_path = "/lookup/batch/%s"
-    _max_variants_per_batch = 1000
 
-    def __init__(self, api_key=None):
+    def __init__(self, api_key=None, max_variants_per_batch=200):
         super(VariantAPIClient, self).__init__(api_key)
+        self.max_variants_per_batch = max_variants_per_batch
 
     def schema(self):
         return self.get(self.schema_lookup_path)
 
-    def lookup(self, query, ref_genome=1019):
-        return self.get(self.lookup_path % (query, ref_genome))
+    def lookup(self, query, params=None, ref_genome='hg19'):
+        """
 
-    def batch_lookup(self, variants, ref_genome=1019):
+        :param query: variant representation
+        :param params: dictionary of key value pairs for http GET parameters. Refer to the api documentation
+        of https://api.varsome.com for examples
+        :param ref_genome: reference genome (hg19 or hg38)
+        :return:dictionary of annotations. refer to https://api.varsome.com/lookup/schema for dictionary properties
+        """
+        return self.get(self.lookup_path % (query, ref_genome), params=params)
+
+    def batch_lookup(self, variants, params=None, ref_genome='hg19'):
+        """
+
+        :param variants: list of variant representations
+        :param params: dictionary of key value pairs for http GET parameters. Refer to the api documentation
+        of https://api.varsome.com for examples
+        :param ref_genome: reference genome (hg19 or hg38)
+        :return: list of dictionaries with annotations per variant refer to https://api.varsome.com/lookup/schema
+        for dictionary properties
+        """
         results = []
-        for queries in [variants[x:x + self._max_variants_per_batch] for x in range(0, len(variants),
-                                                                                    self._max_variants_per_batch)]:
-            data = self.post(self.batch_lookup_path % ref_genome, json_data={'variants': queries})
+        for queries in [variants[x:x + self.max_variants_per_batch] for x in range(0, len(variants),
+                                                                                   self.max_variants_per_batch)]:
+            data = self.post(self.batch_lookup_path % ref_genome, params=params, json_data={'variants': queries})
             results.extend(data)
         return results
