@@ -37,9 +37,9 @@ your code use
     # if you don't have an api key use
     # api = VariantAPIClient()
     # fetch information about a variant into a dictionary
-    result = api.lookup('chr19:20082943:1:G', params={'add-source-databases': 'gnomad-exomes'}, ref_genome='hg19')
-    # access results e.g. the sequence around the variant
-    sequence = result['ref_seq']['sequence']
+    result = api.lookup('chr19:20082943:1:G', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
+    # access results e.g. the transcripts of the variant
+    sequence = result['refseq_transcripts']
     # fetch information for multiple variants
     variants = ['chr19:20082943:1:G','chr22:39777823::CAA']
     # results will be an array of dictionaries an api key will be required for this request
@@ -77,4 +77,6 @@ for a list of available options
 
 To view available request parameters (used in the params method parameter) refer to an example at [api.varsome.com](https://api.varsome.com) or
 the [api documentation](api.varsome.com).
+
+To understand how annotation properties are included in the json response please refer to the relevant [https://test-api.varsome.com/lookup/schema](schema)
 
