@@ -78,5 +78,5 @@ for a list of available options
 To view available request parameters (used in the params method parameter) refer to an example at [api.varsome.com](https://api.varsome.com) or
 the [api documentation](api.varsome.com).
 
-To understand how annotation properties are included in the json response please refer to the relevant [https://test-api.varsome.com/lookup/schema](schema)
+To understand how annotation properties are included in the json response please refer to the relevant [schema](https://test-api.varsome.com/lookup/schema)
 
