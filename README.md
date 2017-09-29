@@ -37,13 +37,13 @@ your code use
     # if you don't have an api key use
     # api = VariantAPIClient()
     # fetch information about a variant into a dictionary
-    result = api.lookup('chr19:20082943:1:G', ref_genome=1019)
+    result = api.lookup('chr19:20082943:1:G', params={'add-source-databases': 'gnomad-exomes'}, ref_genome='hg19')
     # access results e.g. the sequence around the variant
     sequence = result['ref_seq']['sequence']
     # fetch information for multiple variants
     variants = ['chr19:20082943:1:G','chr22:39777823::CAA']
     # results will be an array of dictionaries an api key will be required for this request
-    results = api.batch_lookup(variants, ref_genome=1019)
+    results = api.batch_lookup(variants, params={'add-source-databases': 'gnomad-exomes,gnomad-genomes'}, ref_genome='hg19')
 
 If errors occur while using the client an exception will be thrown.
 You may wish to catch this exception and proceed with your own code logic
@@ -51,7 +51,7 @@ You may wish to catch this exception and proceed with your own code logic
     from variantapi.client import VariantAPIClient, VariantApiException
     api = VariantAPIClient()
     try:
-       result = api.lookup('chr19:20082943:1:G', ref_genome=1054)
+       result = api.lookup('chr19:20082943:1:G', ref_genome='hg64')
     except VariantApiException as e:
         # proceed with your code flow e.g.
         print(e) # 404 (invalid reference genome)
@@ -62,12 +62,12 @@ You may wish to catch this exception and proceed with your own code logic
 You may download and run the run.py python file after installation of the package
 to test the api client directly e.g.
 
-    ./run.py -g 1019 -q 'chr19:20082943:1:G'
+    ./run.py -g hg19 -q 'chr19:20082943:1:G' -p add-all-data=1
 
 You may pass more than one values after the -q argument that will make a batch request
 to the API but you will need a token to do that e.g.
 
-    ./run.py -k 'your token' -g 1019 -q 'rs113488022' 'chr19:20082943:1:G'
+    ./run.py -k 'your token' -g hg19 -q 'rs113488022' 'chr19:20082943:1:G' -p add-source-databases=gnomad-exomes,gnomad-genomes
 
 Run
 
@@ -75,4 +75,6 @@ Run
 
 for a list of available options
 
+To view available request parameters (used in the params method parameter) refer to an example at [api.varsome.com](https://api.varsome.com) or
+the [api documentation](api.varsome.com).
 
