@@ -126,7 +126,7 @@ def main(argv):
 				variant_string_array = [vld.variant_string for vld in variant_lookup_data_array]
 
 				# Execute batch lookup request
-				batch_data = api.batch_lookup(variant_string_array, ref_genome=ref_genome)
+				batch_data = api.batch_lookup(variant_string_array, ref_genome=ref_genome, params={ 'add-all-data': 1 })
 		
 				# Process response, variant by variant
 				batch_counter = 0
@@ -200,13 +200,20 @@ def variant_lookup_data_from_vcf_record(vcf_record, variant_lookup_data_array):
 # Output:
 #    None
 def process_single_variant_response_data(variant_lookup_data, response_data, vcf_writer):
-	# Check whether there is a field containing gene information in the response.
-	if ('genes' in response_data.keys() and response_data['genes']):
+	# Try to extract the gene_data information from the response
+	gene_symbols = set()
+	if 'refseq_transcripts' in response_data.keys() and response_data['refseq_transcripts']:
+		for t in response_data['refseq_transcripts'][0]['items']:
+			if 'gene_symbol' in t and t['gene_symbol']:
+				gene_symbols.add(t['gene_symbol'])
+	if 'ensembl_transcripts' in response_data.keys() and response_data['ensembl_transcripts']:
+		for t in response_data['ensembl_transcripts'][0]['items']:
+			if 'gene_symbol' in t and t['gene_symbol']:
+				gene_symbols.add(t['gene_symbol'])
+
+	if gene_symbols:
 		# Concatenate all gene symbols into a comma-separated string
-		gene_str = ""
-		for g in response_data['genes'][:-1]:
-			gene_str = gene_str + g['symbol'] + ","
-		gene_str = gene_str + response_data['genes'][-1]['symbol']
+		gene_str = ','.join(gene_symbols)
 
 		# Add gene entry in the INFO field, containing the string.
 		variant_lookup_data.vcf_record.INFO['GENE'] = gene_str
