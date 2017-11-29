@@ -29,6 +29,8 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     install_requires=[
-        'requests>=2.0.0, <3.0.0'
+        'requests>=2.0.0, <3.0.0',
+        'PyVCF>=0.6.8',
+        'jsonmodels>=2.2'
     ],
 )
