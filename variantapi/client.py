@@ -87,7 +87,7 @@ class VariantAPIClient(VariantAPIClientBase):
     lookup_path = "/lookup/%s/%s"
     batch_lookup_path = "/lookup/batch/%s"
 
-    def __init__(self, api_key=None, max_variants_per_batch=200):
+    def __init__(self, api_key=None, max_variants_per_batch=10000):
         super(VariantAPIClient, self).__init__(api_key)
         self.max_variants_per_batch = max_variants_per_batch
 
@@ -106,7 +106,10 @@ class VariantAPIClient(VariantAPIClientBase):
         return self.get(self.lookup_path % (query, ref_genome), params=params)
 
     def batch_lookup(self, variants, params=None, ref_genome='hg19'):
-        """
+        """return list of query results for all variants.
+
+        split variants into chunks of size max_variants_per_batch. post GET for each chunk,
+        but return combined results.
 
         :param variants: list of variant representations
         :param params: dictionary of key value pairs for http GET parameters. Refer to the api documentation
@@ -115,9 +118,11 @@ class VariantAPIClient(VariantAPIClientBase):
         :return: list of dictionaries with annotations per variant refer to https://api.varsome.com/lookup/schema
         for dictionary properties
         """
+        n = self.max_variants_per_batch
+        chunks = [variants[i:i+n] for i in range(0, len(variants), n)]
+        
         results = []
-        for queries in [variants[x:x + self.max_variants_per_batch] for x in range(0, len(variants),
-                                                                                   self.max_variants_per_batch)]:
-            data = self.post(self.batch_lookup_path % ref_genome, params=params, json_data={'variants': queries})
+        for chunk in chunks:
+            data = self.post(self.batch_lookup_path % ref_genome, params=params, json_data={'variants': chunk})
             results.extend(data)
         return results

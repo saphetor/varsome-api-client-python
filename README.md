@@ -56,8 +56,9 @@ You may wish to catch this exception and proceed with your own code logic
         # proceed with your code flow e.g.
         print(e) # 404 (invalid reference genome)
 
-### Example Usage
+## Example Command Line Usage
 
+### Single Variants or Small Batches
 
 You may download and run the run.py python file after installation of the package
 to test the api client directly e.g.
@@ -75,6 +76,20 @@ Run
 
 for a list of available options
 
+### Large Batches
+
+When retrieving information for large batches, you may use `batchRequestClient.py`.
+It accepts a text file with one variant per line and outputs a json file. e.g.
+
+    ./batchRequestClient.py -i vars.txt -o test.json -k 'your token' -n 10
+
+Run
+
+    ./batchRequestClient.py -h
+
+for a list of available options
+
+## Reference
 To view available request parameters (used in the params method parameter) refer to an example at [api.varsome.com](https://api.varsome.com) or
 the [api documentation](http://docs.varsome.apiary.io).
 
