@@ -11,6 +11,25 @@ within your code, or do
 
     pip install https://github.com/saphetor/variant-api-client-python/archive/master.zip
 
+Installation on Linux:
+...
+
+Installation on Mac OSX:
+- install pip using "sudo easy_install pip".
+- install the require Python libraries:  sudo pip install https://github.com/saphetor/variant-api-client-python/archive/master.zip
+
+Installation on Windows:
+...
+
+### Test run
+
+Try the following query to annotate a single variant:
+./run.py -g hg19 -q 'chr7-140453136-A-T' -p add-all-data=1
+
+The script should complete without errors and display aprox 6,700 lines of data from dann, dbnsfp, ensemble_transcripts, gerp, gnomad_exomes, gnomad_exomes_coverage, icgc_somatic, ncbi_clinvar2, pub_med_articles, refseq_transcripts, sanger_cosmic_public, uniprot_variants, wustl_civic etc.
+
+You are now ready to write your own code using the VarSome API.
+
 ### API Documentation
 
 Please visit the [api documentation](http://docs.varsome.apiary.io) to find out how to use the api and
@@ -21,7 +40,7 @@ what values does the api provide as a response to lookup requests
 You generally are not required to have an api key to use the api, though the number of requests you will be able
 to issue will be throttled if they exceed a certain number.
 
-Without an API key you will not be able to perform batch requests as well.
+An API key is required in order to batch requests or enable allele frequency filtering.
 
 To obtain an API key please [contact us](mailto:support@saphetor.com)
 

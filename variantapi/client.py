@@ -113,6 +113,7 @@ class VariantAPIClient(VariantAPIClientBase):
         super(VariantAPIClient, self).__init__(api_key)
         self.max_variants_per_batch = max_variants_per_batch
 
+    @staticmethod
     def query_is_variant_id(self, query):
         """
         Query may be a variat identifier developed by Saphetor
