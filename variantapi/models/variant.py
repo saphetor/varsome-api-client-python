@@ -1,8 +1,14 @@
+from .fields import DictField
 from .elements import *
 
 __author__ = "ckopanos"
 
 class AnnotatedVariant(models.Base):
+    """
+    Base variant result definition model
+    Most fields are defined as list fields, even though they contain a single list item
+    This is due to the fact that VarSome API can return both current and old versions of databases
+    """
 
     chromosome = fields.StringField(help_text="Chromosome")
     alt = fields.StringField(help_text="ALT Sequence", required=False, nullable=True)
@@ -40,8 +46,43 @@ class AnnotatedVariant(models.Base):
     @property
     def genes(self):
         genes = []
+        genes.extend(self.refseq_genes)
+        genes.extend(self.ensembl_genes)
+        return list(set(genes))
+
+    @property
+    def refseq_genes(self):
+        genes = []
         for transcript in self.refseq_transcripts:
-            for item in transcript.items:
-                if item.gene_symbol:
-                    genes.append(item.gene_symbol)
+            genes.extend([item.gene_symbol for item in transcript.items if item.gene_symbol])
         return genes
+
+    @property
+    def ensembl_genes(self):
+        genes = []
+        for transcript in self.ensembl_transcripts:
+            genes.extend([item.gene_symbol for item in transcript.items if item.gene_symbol])
+        return genes
+
+    @property
+    def rs_ids(self):
+        rs_ids = []
+        for dbnsp_entry in self.ncbi_dbsnp:
+            rs_ids.extend(dbnsp_entry.rsid)
+        return ["rs%s" % rs_id for rs_id in rs_ids]
+
+    @property
+    def gnomad_exomes_af(self):
+        """
+        Returns the gnomad exomes af value.
+        :return:
+        """
+        af = [gnomad_exomes.af for gnomad_exomes in self.gnomad_exomes]
+        return af[0] if af else None
+
+    @property
+    def gnomad_genomes_af(self):
+        af = [gnomad_genomes.af for gnomad_genomes in self.gnomad_genomes]
+        return af[0] if af else None
+
+
