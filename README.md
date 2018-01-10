@@ -4,22 +4,31 @@
 
 This client is still in beta but it is a good start to start playing around with the API.
 
-### Installation
+### Python versions
+Python version 3 is supported.
 
-Either download clone the repository from github and place the variantapi package
+### Installation
+It is advised that you create a python virtual environment instead of globally installing the library
+
+There several ways to create a virtual environment but you can refer to [pip installation](https://pip.pypa.io/en/stable/installing/) and
+[virtualenv installation](https://virtualenv.pypa.io/en/stable/installation/) to first install these 2 tools if you don't
+have them already installed via a package manager (Linux) or HomeBrew (MacOS), etc.
+
+To create a virtual env you can follow the [user guide](https://virtualenv.pypa.io/en/stable/userguide/) or simply run
+
+    virtualenv -p path_to/python3 venv_dir_name
+    
+Activate the virtual environment
+
+    source venv_dir_name/bin/activate
+
+
+Finally to use the client either download or clone the repository from github and place the variantapi package
 within your code, or do
 
     pip install https://github.com/saphetor/variant-api-client-python/archive/master.zip
 
-Installation on Linux:
-...
-
-Installation on Mac OSX:
-- install pip using "sudo easy_install pip".
-- install the require Python libraries:  sudo pip install https://github.com/saphetor/variant-api-client-python/archive/master.zip
-
-Installation on Windows:
-...
+The client will be installed within your virtual environment.
 
 ### Test run
 
