@@ -47,6 +47,10 @@ class AnnotatedVariant(models.Base):
 
     @property
     def genes(self):
+        """
+
+        :return: list of genes
+        """
         genes = []
         genes.extend(self.refseq_genes)
         genes.extend(self.ensembl_genes)
@@ -54,6 +58,10 @@ class AnnotatedVariant(models.Base):
 
     @property
     def refseq_genes(self):
+        """
+
+        :return: list of genes found in RefSeq transcripts
+        """
         genes = []
         for transcript in self.refseq_transcripts:
             genes.extend([item.gene_symbol for item in transcript.items if item.gene_symbol])
@@ -61,6 +69,10 @@ class AnnotatedVariant(models.Base):
 
     @property
     def ensembl_genes(self):
+        """
+
+        :return: list of genes found in Ensembl transcripts
+        """
         genes = []
         for transcript in self.ensembl_transcripts:
             genes.extend([item.gene_symbol for item in transcript.items if item.gene_symbol])
@@ -68,6 +80,10 @@ class AnnotatedVariant(models.Base):
 
     @property
     def rs_ids(self):
+        """
+
+        :return: list of rsids (str)
+        """
         rs_ids = []
         for dbnsp_entry in self.ncbi_dbsnp:
             rs_ids.extend(dbnsp_entry.rsid)
@@ -77,12 +93,33 @@ class AnnotatedVariant(models.Base):
     def gnomad_exomes_af(self):
         """
         Returns the gnomad exomes af value.
-        :return:
+        :return: float gnomad exomes af
         """
         af = [gnomad_exomes.af for gnomad_exomes in self.gnomad_exomes]
         return af[0] if af else None
 
     @property
     def gnomad_genomes_af(self):
+        """
+        Returns the gnomad genomes af value.
+        :return: float gnomad genomes af
+        """
         af = [gnomad_genomes.af for gnomad_genomes in self.gnomad_genomes]
         return af[0] if af else None
+
+    @property
+    def gnomad_exomes_an(self):
+        """
+
+        :return: int gnomad exomes an
+        """
+        an = [gnomad_exomes.an for gnomad_exomes in self.gnomad_exomes]
+        return an[0] if an else None
+
+    @property
+    def gnomad_genomes_an(self):
+        """
+        :return: int gnomad genomes an
+        """
+        an = [gnomad_genomes.an for gnomad_genomes in self.gnomad_genomes]
+        return an[0] if an else None
