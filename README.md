@@ -163,8 +163,6 @@ in the VCFAnnotator class
         def add_vcf_header_info(self, vcf_template):
             """
             Adds vcf INFO headers for the annotated values provided
-            This is just a base method you need to override in your own implementation
-            depending on the annotations added through the annotate_record method
             :param vcf_template: vcf reader object
             :return:
             """
