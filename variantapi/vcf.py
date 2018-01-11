@@ -68,36 +68,46 @@ class VCFAnnotator(VariantAPIClient):
         record.INFO['variant_id'] = variant_result.variant_id
         record.INFO['gene'] = ",".join(variant_result.genes)
         record.INFO['gnomad_exomes_AF'] = variant_result.gnomad_exomes_af
-        record.INFO['gnomad_genomes_AF'] = variant_result.gnomad_exomes_af
+        record.INFO['gnomad_genomes_AF'] = variant_result.gnomad_genomes_af
         record.ALT = variant_result.alt
         record.POS = variant_result.pos
         record.ID = ";".join(variant_result.rs_ids) or "."
         return record
 
-    def add_vcf_header_info(self, vcf_writer):
+    def add_vcf_header_info(self, vcf_template):
         """
         Adds vcf INFO headers for the annotated values provided
         This is just a base method you need to override in your own implementation
         depending on the annotations added through the annotate_record method
-        :param vcf_writer: vcf writer object
+        :param vcf_template: vcf reader object
         :return:
         """
-        vcf_writer.infos['variant_id'] = _Info('variant_id', 1, 'Integer', 'Saphetor variant identifier', None, None)
-        vcf_writer.infos['gene'] = _Info('gene', '.', 'String', 'Genes related to this variant', None, None)
-        vcf_writer.infos['gnomad_exomes_AF'] = _Info('gnomad_exomes_AF', '.', 'Float',
+        vcf_template.infos['variant_id'] = _Info('variant_id', 1, 'Integer', 'Saphetor variant identifier', None, None)
+        vcf_template.infos['gene'] = _Info('gene', '.', 'String', 'Genes related to this variant', None, None)
+        vcf_template.infos['gnomad_exomes_AF'] = _Info('gnomad_exomes_AF', '.', 'Float',
                                                      'GnomAD exomes allele frequency value', None, None)
-        vcf_writer.infos['gnomad_genomes_AF'] = _Info('gnomad_genomes_AF', '.', 'Float',
+        vcf_template.infos['gnomad_genomes_AF'] = _Info('gnomad_genomes_AF', '.', 'Float',
                                                       'GnomAD genomes allele frequency value', None, None)
 
-    def annotate(self, input_vcf_file, output_vcf_file=None):
+    def annotate(self, input_vcf_file, output_vcf_file=None, template=None, **kwargs):
+        """
+        :param input_vcf_file: The input vcf file to be annotated
+        :param output_vcf_file: The file to write annotations back if none input_vcf_file.annotated.vcf will be
+        generated instead
+        :param template: An alternate vcf file to use for vcf file headers. If none the input vcf file will
+        be used
+        :return:
+        """
         annotations_start = time.time()
         if not os.path.isfile(input_vcf_file):
             raise FileNotFoundError('%s does not exist' % input_vcf_file)
         if output_vcf_file is None:
             output_vcf_file = "%s.annotated.vcf" % input_vcf_file
-        vcf_reader = vcf.Reader(filename=input_vcf_file, strict_whitespace=True)
-        self.vcf_writer = vcf.Writer(open(output_vcf_file, 'w'), vcf_reader)
-        self.add_vcf_header_info(self.vcf_writer)
+        vcf_reader = vcf.Reader(filename=input_vcf_file, strict_whitespace=kwargs.get('strict_whitespace', True))
+        vcf_template = vcf_reader if template is None else vcf.Reader(filename=template, strict_whitespace=kwargs.get(
+            'strict_whitespace', True))
+        self.add_vcf_header_info(vcf_template)
+        self.vcf_writer = vcf.Writer(open(output_vcf_file, 'w'), vcf_template)
         input_batch = OrderedDict()
         # this will keep the request queue large enough so that parallel requests will not stop executing
         batch_limit = self.max_variants_per_batch * self.max_threads * 2

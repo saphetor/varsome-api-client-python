@@ -16,7 +16,7 @@ def annotate_variant(argv):
                         required=False, default='hg19')
     parser.add_argument('-q',
                         help='Query to lookup in the API e.g. chr19:20082943:1:G or in case of batch request '
-                             'e.g. chr19:20082943:1:G rs113488022. Don\'t use it together with the -i option',
+                             'e.g. chr15-73027478-T-C rs113488022. Don\'t use it together with the -i option',
                         type=str, metavar='Query', required=False, nargs='+')
     parser.add_argument('-p',
                         help='Request parameters e.g. add-all-data=1 expand-pubmed-articles=0',
@@ -57,8 +57,12 @@ def annotate_variant(argv):
             if api_key is None:
                 sys.exit("You need to pass an api key to perform batch requests")
             result = api.batch_lookup(query, params=request_parameters, ref_genome=ref_genome)
-        sys.stdout.write(json.dumps(result, indent=4, sort_keys=True) if result else "No result")
-        sys.stdout.write("\n")
+        if output_file:
+            write_f = open(output_file, 'w')
+            json.dump(result, write_f, indent=4, sort_keys=True)
+        else:
+            sys.stdout.write(json.dumps(result, indent=4, sort_keys=True) if result else "No result")
+            sys.stdout.write("\n")
         sys.exit(0)
     with open(input_file) as f:
         variants = f.read().splitlines()
@@ -71,6 +75,9 @@ def annotate_variant(argv):
             write_f = open(output_file, 'w')
         try:
             if api_key is None:
+                sys.stdout.write('Without an API key, variants will be annotated one a time, '
+                                 'causing a 429 too many requests error after some time\n')
+                sys.stdout.flush()
                 results = []
                 for variant in variants:
                     result = api.lookup(variant, params=request_parameters, ref_genome=ref_genome)

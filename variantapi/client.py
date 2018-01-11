@@ -91,7 +91,7 @@ class VariantAPIClientBase(object):
         response = self._make_request(path, "GET", params=params)
         return response.json()
 
-    def post(self, path, params=None, json_data=None, raise_exceptions=False):
+    def post(self, path, params=None, json_data=None, raise_exceptions=True):
         # handle api errors in batch requests.
         try:
             response = self._make_request(path, "POST", params=params, json_data=json_data)
