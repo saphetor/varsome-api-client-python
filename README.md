@@ -190,4 +190,16 @@ An API key is required in order to batch requests or enable allele frequency fil
 
 To obtain an API key please [contact us](mailto:support@saphetor.com)
 
+### How to run the tests
+
+Clone the repository after creating a virtual environment, and run
+
+    python setup.py test
+    
+In order to run the tests it is advised that you set the VARIANT_API_KEY env var to your api token,
+otherwise several tests will fail because the API will return a 429 (too many requests error).
+Be advised as well that running the tests will count towards your account request limit depending on the
+API package you are subscribed to.
+ 
+
 
