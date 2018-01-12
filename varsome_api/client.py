@@ -155,7 +155,8 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
         """
         results = []
 
-        async def batch(executor):
+        @asyncio.coroutine
+        def batch(executor):
             loop = asyncio.get_event_loop()
             futures = [
                 loop.run_in_executor(
@@ -166,7 +167,8 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
                 for queries in [variants[x:x + self.max_variants_per_batch] for x in range(0, len(variants),
                                                                                            self.max_variants_per_batch)]
             ]
-            for response in await asyncio.gather(*futures):
+            responses = yield from asyncio.gather(*futures)
+            for response in responses:
                 results.extend(response)
         # Create a limited thread pool.
         executor = concurrent.futures.ThreadPoolExecutor(

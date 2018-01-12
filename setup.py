@@ -29,8 +29,6 @@ setup(
         'Intended Audience :: Science/Research',
         'Operating System :: OS Independent',
         'License :: OSI Approved :: Apache License',
-        'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
@@ -42,5 +40,5 @@ setup(
         'PyVCF>=0.6.8',
         'jsonmodels>=2.2'
     ],
-    python_requires='>=3',
+    python_requires='>=3.3',
 )
