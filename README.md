@@ -5,7 +5,7 @@
 This client is still in beta but it is a good for playing around with the API.
 
 ### Python versions
-Python version 3 is supported.
+Python versions 3.5 and greater are supported.
 
 ### Installation
 We suggest that you create a python virtual environment instead of globally installing the library.
@@ -61,33 +61,35 @@ section below for how to annotate a VCF file with the annotations that are of in
 ### Using the client in your code
 
 Using the API client is quite straightforward. Just install the API client package and use the following in your code:
-
-    from varsome_api.client import VarSomeAPIClient
-    # API key is not required for single variant lookups
-    api_key = 'Your token'
-    api = VarSomeAPIClient(api_key)
-    # if you don't have an API key use
-    # api = VarSomeAPIClient()
-    # fetch information about a variant into a dictionary
-    result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
-    # access results e.g. the transcripts of the variant
-    transcripts = result['refseq_transcripts']
-    # fetch information for multiple variants
-    variants = ['chr19:20082943:1:G','chr22:39777823::CAA']
-    # Results will be an array of dictionaries. An API key will be required for this request
-    results = api.batch_lookup(variants, params={'add-source-databases': 'gnomad-exomes,gnomad-genomes'}, ref_genome='hg19')
-    # look at the python doc for batch_lookup method for additional parameters
-
+```python
+from varsome_api.client import VarSomeAPIClient
+# API key is not required for single variant lookups
+api_key = 'Your token'
+api = VarSomeAPIClient(api_key)
+# if you don't have an API key use
+# api = VarSomeAPIClient()
+# fetch information about a variant into a dictionary
+result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
+# access results e.g. the transcripts of the variant
+transcripts = result['refseq_transcripts']
+# fetch information for multiple variants
+variants = ['chr19:20082943:1:G','chr22:39777823::CAA']
+# Results will be an array of dictionaries. An API key will be required for this request
+results = api.batch_lookup(variants, params={'add-source-databases': 'gnomad-exomes,gnomad-genomes'}, ref_genome='hg19')
+# look at the python doc for batch_lookup method for additional parameters
+```
 If errors occur while using the client, an exception will be thrown.
 You may wish to catch this exception and proceed with your own code logic:
 
-    from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
-    api = VarSomeAPIClient()
-    try:
-       result = api.lookup('chr19:20082943:1:G', ref_genome='hg64')
-    except VarSomeAPIException as e:
-        # proceed with your code flow e.g.
-        print(e) # 404 (invalid reference genome)
+```python
+from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
+api = VarSomeAPIClient()
+try:
+   result = api.lookup('chr19:20082943:1:G', ref_genome='hg64')
+except VarSomeAPIException as e:
+    # proceed with your code flow e.g.
+    print(e) # 404 (invalid reference genome)
+```
 
 To view available request parameters (used by the `params` method parameter), refer to an example at [api.varsome.com](https://api.varsome.com).
 
@@ -98,86 +100,96 @@ To understand how annotation properties are included in the JSON response, pleas
 If you don't want to read through each attribute in the JSON response, you can wrap the result into a Python
 [JSON model](http://jsonmodels.readthedocs.io/en/latest/readme.html):
 
-    from varsome_api.client import VarSomeAPIClient
-    from varsome_api.models.variant import AnnotatedVariant
-    # API key is not required for single variant lookups
-    api_key = 'Your token'
-    api = VarSomeAPIClient(api_key)
-    # fetch information about a variant into a dictionary
-    result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
-    annotated_variant = AnnotatedVariant(**result)
+```python
+from varsome_api.client import VarSomeAPIClient
+from varsome_api.models.variant import AnnotatedVariant
+# API key is not required for single variant lookups
+api_key = 'Your token'
+api = VarSomeAPIClient(api_key)
+# fetch information about a variant into a dictionary
+result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
+annotated_variant = AnnotatedVariant(**result)
+```
 
 You now have access to a set of shortcut attributes (these will be updated over time in the code base):
 
-    annotated_variant.chromosome
-    annotated_variant.alt
-    annotated_variant.genes # directly get the genes related to the variant
-    annotated_variant.gnomad_exomes_af # etc
-
+```python
+annotated_variant.chromosome
+annotated_variant.alt
+annotated_variant.genes # directly get the genes related to the variant
+annotated_variant.gnomad_exomes_af # etc
+```
 Or you may access other inner properties of other available properties:
 
-    # get gnomad exomes allele number
-    allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes]
+```python
+# get gnomad exomes allele number
+allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes]
+```
 
 JSON model-type objects that contain a `version` property, like `annotated_variant.gnomad_exomes`, are
 always returned as lists of objects. This is because the API has the ability to return multiple versions of 
 annotation databases (although this is not currently publicly available). For consistency, therefore,
 these are always lists, though it is safe to assume that they will only include a single item. So it is safe
 to rewrite as:
-     
-    try:
-        allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes][0]
-    except IndexError:
-        pass # no gnomad exomes annotation for the variant
-           
+
+```python
+try:
+    allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes][0]
+except IndexError:
+    pass # no gnomad exomes annotation for the variant
+```
+
 #### Annotating a VCF using the client
 
 To annotate a VCF you can base your code on the VCFAnnotator object. This provides a basic implementation that
 will annotate a VCF file using a set of the available annotations. It uses [PyVCF](https://github.com/jamescasbon/PyVCF) to read and write to VCF files.
 
-    from varsome_api.vcf import VCFAnnotator
-    api_key = 'Your token'
-    vcf_annotator = VCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
-    vcf_file = 'input.vcf'
-    output_vcf_file = 'annotated.vcf'
-    vcf_annotator.annotate(vcf_file, output_vcf_file)
-        
+```python
+from varsome_api.vcf import VCFAnnotator
+api_key = 'Your token'
+vcf_annotator = VCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
+vcf_file = 'input.vcf'
+output_vcf_file = 'annotated.vcf'
+vcf_annotator.annotate(vcf_file, output_vcf_file)
+```
+
 To annotate the VCF file with the annotations that you are interested in, you need only override 2 methods
 (`annotate_record` and `add_vcf_header_info`) in the VCFAnnotator class:
 
-    from varsome_api.vcf import VCFAnnotator
-    from vcf.parser import _Info
-    class MyVCFAnnotator(VCFAnnotator):
+```python
+from varsome_api.vcf import VCFAnnotator
+from vcf.parser import _Info
+class MyVCFAnnotator(VCFAnnotator):
     
-        def annotate_record(self, record, variant_result):
-            """
-            :param record: vcf record object
-            :param variant_result: AnnotatedVariant object
-            :return: annotated record object
-            """
-            record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
-            # if you wish to also include the default annotations
-            # return super().annotate_record(record, variant_result)
-            return record
+    def annotate_record(self, record, variant_result):
+        """
+        :param record: vcf record object
+        :param variant_result: AnnotatedVariant object
+        :return: annotated record object
+        """
+        record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
+        # if you wish to also include the default annotations
+        # return super().annotate_record(record, variant_result)
+        return record
+    
         
-            
-        def add_vcf_header_info(self, vcf_template):
-            """
-            Adds vcf INFO headers for the annotated values provided
-            :param vcf_template: vcf reader object
-            :return:
-            """
-            vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', '.', 'Integer',
-                                                                 'GnomAD exomes allele number value', None, None)
-            # if you wish to also include the default headers
-            # super().add_vcf_header_info(vcf_template)
+    def add_vcf_header_info(self, vcf_template):
+        """
+        Adds vcf INFO headers for the annotated values provided
+        :param vcf_template: vcf reader object
+        :return:
+        """
+        vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', '.', 'Integer',
+                                                             'GnomAD exomes allele number value', None, None)
+        # if you wish to also include the default headers
+        # super().add_vcf_header_info(vcf_template)
                                                                  
-    api_key = 'Your token'
-    vcf_annotator = MyVCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
-    vcf_file = 'input.vcf'
-    output_vcf_file = 'annotated.vcf'
-    vcf_annotator.annotate(vcf_file, output_vcf_file)
-        
+api_key = 'Your token'
+vcf_annotator = MyVCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
+vcf_file = 'input.vcf'
+output_vcf_file = 'annotated.vcf'
+vcf_annotator.annotate(vcf_file, output_vcf_file)
+```        
         
 ### API Documentation
 
