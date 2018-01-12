@@ -14,7 +14,8 @@ setup(
     scripts=['scripts/variantapi_run.py', 'scripts/variantapi_annotate_vcf.py'],
     url='https://github.com/saphetor/variant-api-client-python',
     license='Apache License, Version 2.0',
-    test_suite='variantapi.test.test_client.suite',
+    test_suite='nose.collector',
+    tests_require=['nose'],
     include_package_data=True,
     package_data= {
         '': ['*.vcf', '*.csv'],
