@@ -157,6 +157,8 @@ in the VCFAnnotator class
             :return: annotated record object
             """
             record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
+            # if you wish to also include the default annotations
+            # return super().annotate_record(record, variant_result)
             return record
         
             
@@ -168,6 +170,8 @@ in the VCFAnnotator class
             """
             vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', '.', 'Integer',
                                                                  'GnomAD exomes allele number value', None, None)
+            # if you wish to include also the default headers
+            # super().add_vcf_header_info(vcf_template)
                                                                  
     api_key = 'Your token'
     vcf_annotator = MyVCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
