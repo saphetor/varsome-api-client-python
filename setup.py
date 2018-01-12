@@ -12,7 +12,7 @@ setup(
     version=__versionstr__,
     packages=find_packages(".", ),
     scripts=['scripts/varsome_api_run.py', 'scripts/varsome_api_annotate_vcf.py'],
-    url='https://github.com/saphetor/variant-api-client-python',
+    url='https://github.com/saphetor/varsome-api-client-python',
     license='Apache License, Version 2.0',
     test_suite='nose.collector',
     tests_require=['nose'],
