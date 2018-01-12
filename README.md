@@ -5,7 +5,7 @@
 This client is still in beta but it is a good for playing around with the API.
 
 ### Python versions
-Python versions 3.5 and greater are supported.
+Python versions 3.3 and greater are supported.
 
 ### Installation
 We suggest that you create a python virtual environment instead of globally installing the library.
