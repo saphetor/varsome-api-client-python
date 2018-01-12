@@ -35,7 +35,6 @@ class AnnotatedVariant(models.Base):
     sanger_cosmic = fields.ListField(required=False, items_types=(Cosmic,), help_text="Sanger Cosmic")
     sanger_cosmic_public = fields.ListField(required=False, items_types=(CosmicPublic,), help_text="Cosmic")
     sanger_cosmic_licensed = fields.ListField(required=False, items_types=(CosmicLicensed,), help_text="Cosmic")
-    ncbi_clinvar = fields.ListField(required=False, items_types=(ClinVar,), help_text="ClinVar")
     ncbi_clinvar2 = fields.ListField(required=False, items_types=(ClinVar2,), help_text="ClinVar2")
     icgc_somatic = fields.ListField(required=False, items_types=(Somatic,), help_text="ICGC Somatic")
     iarc_tp53_germline = fields.ListField(required=False, items_types=(TP53Germline,), help_text="IARC TP53 Germline")

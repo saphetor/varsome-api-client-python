@@ -10,24 +10,6 @@ class DbSNP(models.Base):
     rsid = fields.ListField(items_types=(int,), help_text="RS ID")
 
 
-class ClinVarDisease(models.Base):
-    clndbn = fields.StringField(help_text="Disease", required=False, nullable=True)
-    clnsig = fields.IntField(help_text="Clinical Significance", required=False, nullable=True)
-    databases = DictField(help_text="External links",
-                          required=False, )  # todo specify the types of databases and assorted values
-    clnsig_description = fields.StringField(help_text="Clinical Significance description", required=False,
-                                            nullable=True)
-
-
-class ClinVar(models.Base):
-    version = fields.StringField(help_text="Version")
-    clnorigin = fields.IntField(required=False, nullable=True, help_text="Allele Origin")
-    clnorigin_description = fields.StringField(help_text="Allele Origin description", required=False, nullable=True)
-    disease = fields.ListField(items_types=(ClinVarDisease,), help_text="Disease", nullable=True, required=False)
-    pub_med_references = fields.ListField(items_types=(int,), help_text="PubMed references", required=False,
-                                          nullable=True)
-
-
 class ClinVar2(models.Base):
     version = fields.StringField(help_text="Version")
     review_status = fields.StringField(help_text="Review status", required=False, nullable=True)
