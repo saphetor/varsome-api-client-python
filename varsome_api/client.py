@@ -45,7 +45,7 @@ class VarSomeAPIClientBase(object):
             logger = logging.getLogger(__name__)
             logger.setLevel(logging.DEBUG)
             formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            ch = logging.FileHandler(os.path.join(BASE_DIR, 'output.log'))
+            ch = logging.StreamHandler()
             ch.setLevel(logging.DEBUG)
             ch.setFormatter(formatter)
             logger.addHandler(ch)
