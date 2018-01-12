@@ -10,7 +10,7 @@ __author__ = 'ckopanos'
 
 
 def annotate_variant(argv):
-    parser = argparse.ArgumentParser(description='Sample Variant API calls')
+    parser = argparse.ArgumentParser(description='Sample VarSome API calls')
     parser.add_argument('-k', help='Your key to the API', type=str, metavar='API Key', required=False)
     parser.add_argument('-g', help='Reference genome either hg19 or hg38', type=str, metavar='Reference Genome',
                         required=False, default='hg19')
