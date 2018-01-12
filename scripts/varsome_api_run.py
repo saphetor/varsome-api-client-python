@@ -4,7 +4,7 @@ import json
 import sys
 import os
 
-from variantapi.client import VariantAPIClient
+from varsome_api.client import VarSomeAPIClient
 
 __author__ = 'ckopanos'
 
@@ -49,7 +49,7 @@ def annotate_variant(argv):
     request_parameters = None
     if args.p:
         request_parameters = {param[0]: param[1] for param in [param.split("=") for param in args.p]}
-    api = VariantAPIClient(api_key)
+    api = VarSomeAPIClient(api_key)
     if query:
         if len(query) == 1:
             result = api.lookup(query[0], params=request_parameters, ref_genome=ref_genome)

@@ -7,7 +7,7 @@ import requests
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 
 
-class VariantApiException(Exception):
+class VarSomeAPIException(Exception):
     ERROR_CODES = {
         400: "Bad request. A parameter you have passed is not valid, or something in your request is wrong",
         401: "Not Authorized: either you need to provide authentication credentials, or the credentials provided aren't"
@@ -35,7 +35,7 @@ class VariantApiException(Exception):
         return "%s(status=%s)" % (self.__class__.__name__, self.status)
 
 
-class VariantAPIClientBase(object):
+class VarSomeAPIClientBase(object):
     _api_url = 'https://api.varsome.com'
     _accepted_methods = ('GET', 'POST')
 
@@ -59,7 +59,7 @@ class VariantAPIClientBase(object):
 
     def _make_request(self, path, method="GET", params=None, json_data=None):
         if method not in self._accepted_methods:
-            raise VariantApiException('', "Unsupported method %s" % method)
+            raise VarSomeAPIException('', "Unsupported method %s" % method)
         try:
             if method == "GET":
                 r = self.session.get(self._api_url + path, params=params, stream=True)
@@ -74,18 +74,18 @@ class VariantAPIClientBase(object):
             return r
         except HTTPError as e:
             response = e.response
-            if response.status_code in VariantApiException.ERROR_CODES:
+            if response.status_code in VarSomeAPIException.ERROR_CODES:
                 error_message = "Unexpected error"
                 if r.headers['Content-Type'] == "application/json":
                     error_message = response.json().get("detail", None)
-                raise VariantApiException(response.status_code, error_message)
-            raise VariantApiException('', "Unknown http error %s" % e)
+                raise VarSomeAPIException(response.status_code, error_message)
+            raise VarSomeAPIException('', "Unknown http error %s" % e)
         except Timeout as e:
-            raise VariantApiException('', "Request timed out %s" % e)
+            raise VarSomeAPIException('', "Request timed out %s" % e)
         except ConnectionError as e:
-            raise VariantApiException('', "Connection failure or connection refused %s" % e)
+            raise VarSomeAPIException('', "Connection failure or connection refused %s" % e)
         except RequestException as e:
-            raise VariantApiException('', "Unknown error %s" % e)
+            raise VarSomeAPIException('', "Unknown error %s" % e)
 
     def get(self, path, params=None):
         response = self._make_request(path, "GET", params=params)
@@ -96,21 +96,21 @@ class VariantAPIClientBase(object):
         try:
             response = self._make_request(path, "POST", params=params, json_data=json_data)
             return response.json()
-        except VariantApiException as e:
+        except VarSomeAPIException as e:
             if raise_exceptions:
                 raise e
             self.logger.error(e)
             return {'error': str(e)}
 
 
-class VariantAPIClient(VariantAPIClientBase):
+class VarSomeAPIClient(VarSomeAPIClientBase):
     schema_lookup_path = "/lookup/schema"
     lookup_path = "/lookup/%s"
     ref_genome_lookup_path = lookup_path + "/%s"
     batch_lookup_path = "/lookup/batch/%s"
 
     def __init__(self, api_key=None, max_variants_per_batch=200):
-        super(VariantAPIClient, self).__init__(api_key)
+        super(VarSomeAPIClient, self).__init__(api_key)
         self.max_variants_per_batch = max_variants_per_batch
 
 

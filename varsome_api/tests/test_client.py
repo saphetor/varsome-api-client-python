@@ -4,13 +4,13 @@ from tempfile import NamedTemporaryFile
 
 import vcf
 from vcf.parser import _Info
-from variantapi.client import VariantAPIClient, VariantApiException
-from variantapi.models.variant import AnnotatedVariant
-from variantapi.vcf import VCFAnnotator
+from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
+from varsome_api.models.variant import AnnotatedVariant
+from varsome_api.vcf import VCFAnnotator
 
 __author__ = "ckopanos"
 
-API_KEY = os.getenv('VARIANT_API_KEY', None)
+API_KEY = os.getenv('VARSOME_API_KEY', None)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 VARIANTS_CSV_FILE = os.path.join(BASE_DIR, 'tests', 'variants.csv')
 VARIANTS_VCF_FILE = os.path.join(BASE_DIR, 'tests', 'variants.vcf')
@@ -20,7 +20,7 @@ class TestApiClient(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        self.client = VariantAPIClient(API_KEY)
+        self.client = VarSomeAPIClient(API_KEY)
         with open(VARIANTS_CSV_FILE) as f:
             self.variants_to_lookup = f.read().splitlines()
         if API_KEY is None:
@@ -37,8 +37,8 @@ class TestApiClient(unittest.TestCase):
         self.assertIsNotNone(self.client.schema())
 
     def test_404(self):
-        """Check we can raise VariantApiException"""
-        with self.assertRaises(VariantApiException) as ve:
+        """Check we can raise VarSomeAPIException"""
+        with self.assertRaises(VarSomeAPIException) as ve:
             self.client.lookup('chrM:410:A:T', ref_genome='hg64')
         test_exception = ve.exception
         self.assertEqual(test_exception.status, 404)
@@ -64,7 +64,7 @@ class TestApiResponse(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
-        client = VariantAPIClient(API_KEY, max_variants_per_batch=1000)
+        client = VarSomeAPIClient(API_KEY, max_variants_per_batch=1000)
         with open(VARIANTS_CSV_FILE) as f:
             self.variants_to_lookup = f.read().splitlines()
         self.results = client.batch_lookup(self.variants_to_lookup, ref_genome='hg19',

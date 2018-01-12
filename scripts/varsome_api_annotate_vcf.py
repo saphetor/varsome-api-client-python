@@ -2,7 +2,7 @@
 import argparse
 import sys
 
-from variantapi.vcf import VCFAnnotator
+from varsome_api.vcf import VCFAnnotator
 
 __author__ = 'ckopanos'
 

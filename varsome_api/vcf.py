@@ -3,13 +3,13 @@ import time
 import vcf
 from collections import OrderedDict
 from vcf.parser import _Info
-from variantapi.client import VariantAPIClient
-from variantapi.models.variant import AnnotatedVariant
+from varsome_api.client import VarSomeAPIClient
+from varsome_api.models.variant import AnnotatedVariant
 
 __author__ = "ckopanos"
 
 
-class VCFAnnotator(VariantAPIClient):
+class VCFAnnotator(VarSomeAPIClient):
     """
     VCFAnnotator will take an input vcf file parse it and produce an annotated vcf file
     """

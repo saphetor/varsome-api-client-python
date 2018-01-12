@@ -1,6 +1,6 @@
 from jsonmodels import models, fields
 
-from variantapi.models.fields import DictField
+from varsome_api.models.fields import DictField
 
 __author__ = "ckopanos"
 

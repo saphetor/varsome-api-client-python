@@ -1,4 +1,4 @@
-# Variant API Client
+# VarSome API Client
 
 ## A basic api client implementation for [api.varsome.com](https://api.varsome.com)
 
@@ -23,27 +23,27 @@ Activate the virtual environment
     source venv_dir_name/bin/activate
 
 
-Finally to use the client either download or clone the repository from github and place the variantapi package
+Finally to use the client either download or clone the repository from github and place the varsome_api package
 within your code, or do
 
-    pip install https://github.com/saphetor/variant-api-client-python/archive/master.zip
+    pip install https://github.com/saphetor/varsome-api-client-python/archive/master.zip
 
-The client will be installed within your virtual environment. Also 2 scripts called variantapi_run.py and 
-variantapi_annotate_vcf.py will be available within your virtual environment $PATH
+The client will be installed within your virtual environment. Also 2 scripts called varsome_api_run.py and 
+varsome_api_annotate_vcf.py will be available within your virtual environment $PATH
 
 ### Using the scripts to directly annotate a list of variants or a vcf file
 
 #### Annotating a variant or list of variants
 Try the following query to annotate a single variant:
 
-    variantapi_run.py -g hg19 -q 'chr7-140453136-A-T' -p add-all-data=1
+    varsome_api_run.py -g hg19 -q 'chr7-140453136-A-T' -p add-all-data=1
 
 The script should complete without errors and display aprox 6,700 lines of data from dann, dbnsfp, ensemble_transcripts, gerp, gnomad_exomes, gnomad_exomes_coverage, icgc_somatic, ncbi_clinvar2, pub_med_articles, refseq_transcripts, sanger_cosmic_public, uniprot_variants, wustl_civic etc.
 The script may also accept a txt file with variants (one per line) and an optional output file to store the
 annotations to. It is advised that you don't use this script with a large number of variants but directly use
 the client within your code.
 
-    variantapi_run.py -g hg19 -k api_key -i variants.txt -o annotations.txt -p add-all-data=1
+    varsome_api_run.py -g hg19 -k api_key -i variants.txt -o annotations.txt -p add-all-data=1
     
 Will read variants from variants.txt and dump the annotations to annotations.txt. If you don't use the -k
 parameter the script will do as many requests as the variants within variants.txt file and you will probably
@@ -52,7 +52,7 @@ end up with HTTP status code 429 (Too many requests) error.
 #### Annotating a vcf file
 To annotate a vcf file use:
 
-    variantapi_annotate_vcf.py -g hg19 -k api_key -i input.vcf -o annotated_vcf.vcf -p add-all-data=1
+    varsome_api_annotate_vcf.py -g hg19 -k api_key -i input.vcf -o annotated_vcf.vcf -p add-all-data=1
     
 Notice however that not all available annotations will be present in the annotated_vcf file. Only a subset
 of the returned annotations will be available, when running this script. Have a look at "Using the client in your code" 
@@ -63,12 +63,12 @@ section on how to annotate a vcf file with the annotations that are of interest 
 Using the api client is quite straightforward. Just install the api client package and from within
 your code use
 
-    from variantapi.client import VariantAPIClient
+    from varsome_api.client import VarSomeAPIClient
     # api key is not required for single variant lookups
     api_key = 'Your token'
-    api = VariantAPIClient(api_key)
+    api = VarSomeAPIClient(api_key)
     # if you don't have an api key use
-    # api = VariantAPIClient()
+    # api = VarSomeAPIClient()
     # fetch information about a variant into a dictionary
     result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
     # access results e.g. the transcripts of the variant
@@ -82,11 +82,11 @@ your code use
 If errors occur while using the client an exception will be thrown.
 You may wish to catch this exception and proceed with your own code logic
 
-    from variantapi.client import VariantAPIClient, VariantApiException
-    api = VariantAPIClient()
+    from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
+    api = VarSomeAPIClient()
     try:
        result = api.lookup('chr19:20082943:1:G', ref_genome='hg64')
-    except VariantApiException as e:
+    except VarSomeAPIException as e:
         # proceed with your code flow e.g.
         print(e) # 404 (invalid reference genome)
 
@@ -99,11 +99,11 @@ To understand how annotation properties are included in the json response please
 If you don't want to read through each attribute in the json response you can wrap the result into a Python
 [json model](http://jsonmodels.readthedocs.io/en/latest/readme.html).
 
-    from variantapi.client import VariantAPIClient
-    from variantapi.models.variant import AnnotatedVariant
+    from varsome_api.client import VarSomeAPIClient
+    from varsome_api.models.variant import AnnotatedVariant
     # api key is not required for single variant lookups
     api_key = 'Your token'
-    api = VariantAPIClient(api_key)
+    api = VarSomeAPIClient(api_key)
     # fetch information about a variant into a dictionary
     result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
     annotated_variant = AnnotatedVariant(**result)
@@ -136,7 +136,7 @@ to rewrite as:
 To annotate a vcf you can base your code on the VCFAnnotator object. This provides a basic implementation that
 will annotate a vcf file using a set of the available annotations. It uses [PyVCF](https://github.com/jamescasbon/PyVCF) to read and write to vcf files.
 
-    from variantapi.vcf import VCFAnnotator
+    from varsome_api.vcf import VCFAnnotator
     api_key = 'Your token'
     vcf_annotator = VCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
     vcf_file = 'input.vcf'
@@ -146,7 +146,7 @@ will annotate a vcf file using a set of the available annotations. It uses [PyVC
 To annotate the vcf file with the annotations that you are interested in you need only override 2 methods
 in the VCFAnnotator class
 
-    from variantapi.vcf import VCFAnnotator
+    from varsome_api.vcf import VCFAnnotator
     from vcf.parser import _Info
     class MyVCFAnnotator(VCFAnnotator):
     
@@ -196,8 +196,8 @@ Clone the repository after creating a virtual environment, and run
 
     python setup.py test
     
-In order to run the tests it is advised that you set the VARIANT_API_KEY env var to your api token,
-otherwise several tests will fail because the API will return a 429 (too many requests error).
+In order to run the tests it is advised that you set the VARSOME_API_KEY env var to your api token,
+otherwise several tests will fail because the API will return a 429 (too many requests error) or 401 (Not authenticated).
 Be advised as well that running the tests will count towards your account request limit depending on the
 API package you are subscribed to.
  

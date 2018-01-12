@@ -1,17 +1,17 @@
 from setuptools import setup, find_packages
 from os import path
 
-VERSION = (2, 0, '0b1')
+VERSION = (1, 0, '0b1')
 __version__ = VERSION
 __versionstr__ = '.'.join(map(str, VERSION))
 
 here = path.abspath(path.dirname(__file__))
 
 setup(
-    name='variant_api',
+    name='varsome_api_client',
     version=__versionstr__,
     packages=find_packages(".", ),
-    scripts=['scripts/variantapi_run.py', 'scripts/variantapi_annotate_vcf.py'],
+    scripts=['scripts/varsome_api_run.py', 'scripts/varsome_api_annotate_vcf.py'],
     url='https://github.com/saphetor/variant-api-client-python',
     license='Apache License, Version 2.0',
     test_suite='nose.collector',
