@@ -5,14 +5,15 @@
 This client is still in beta but it is a good for playing around with the API.
 
 ### Python versions
-Python versions 3.3 and greater are supported.
+Requires at least Python 3.3, you can download the latest version from [www.python.org](http://www.python.org)
 
 ### Installation
 We suggest that you create a python virtual environment instead of globally installing the library.
 
 There are several ways to create a virtual environment, but you can refer to [pip installation](https://pip.pypa.io/en/stable/installing/) and
 [virtualenv installation](https://virtualenv.pypa.io/en/stable/installation/) to first install these 2 tools if you don't
-have them already installed via a package manager (Linux) or HomeBrew (MacOS), etc.
+have them already installed via a package manager (Linux) or HomeBrew (MacOS), etc. 
+Remember to use "sudo -H" when installing on Mac.
 
 To create a virtual environment, you can follow the [user guide](https://virtualenv.pypa.io/en/stable/userguide/) or simply run:
 
@@ -46,8 +47,8 @@ the client within your code instead.
     varsome_api_run.py -g hg19 -k api_key -i variants.txt -o annotations.txt -p add-all-data=1
     
 The command above will read variants from `variants.txt` and dump the annotations to `annotations.txt`. 
-If you don't use the `-k` parameter, the script will do as many requests as there are variants in `variants.txt`,
-and you will probably get an HTTP status code 429 (too many requests) error.
+For any substantial number of variants you will need to register for an API key. You can try the software without 
+the -k apiKey parameter but you will quickly get an HTTP status code 429 (too many requests) error.
 
 #### Annotating a VCF file
 To annotate a VCF file, use: 
@@ -198,12 +199,13 @@ what values the API provides as a response to lookup requests.
 
 ### How to get an API key
 
-You are generally not required to have an API key to use the API but, without one, the number of requests 
-you will be able to issue will be limited.
+To obtain an API key please [contact us](mailto:support@saphetor.com)
+
+You can use the API without an API key, but performance and the number of queries will be 
+limited in order to safeguard our platform's reliability.
 
 You will also not be able to perform batch requests without an API key.
 
-To obtain an API key please [contact us](mailto:support@saphetor.com)
 
 ### How to run the tests
 

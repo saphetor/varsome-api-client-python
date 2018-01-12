@@ -32,6 +32,7 @@ class VCFAnnotator(VarSomeAPIClient):
                                         ref_genome=self.ref_genome, max_threads=self.max_threads)
         duration = time.time() - start
         self.logger.info('Annotated %s variants in %s' % (len(input_batch), duration))
+        self.logger.info('Writing to output vcf file')
         for i, requested_variant in enumerate(input_batch.keys()):
             try:
                 results = api_results[i]
