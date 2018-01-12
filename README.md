@@ -38,7 +38,7 @@ Try the following query to annotate a single variant:
 
     varsome_api_run.py -g hg19 -q 'chr7-140453136-A-T' -p add-all-data=1
 
-The script should complete without errors and display aprox 6,700 lines of data from dann, dbnsfp, ensemble_transcripts, gerp, gnomad_exomes, gnomad_exomes_coverage, icgc_somatic, ncbi_clinvar2, pub_med_articles, refseq_transcripts, sanger_cosmic_public, uniprot_variants, wustl_civic etc.
+The script should complete without errors and display aprox 6,700 lines of data from dann, dbnsfp, ensembl_transcripts, gerp, gnomad_exomes, gnomad_exomes_coverage, icgc_somatic, ncbi_clinvar2, pub_med_articles, refseq_transcripts, sanger_cosmic_public, uniprot_variants, wustl_civic etc.
 The script may also accept a txt file with variants (one per line) and an optional output file to store the
 annotations to. It is advised that you don't use this script with a large number of variants but directly use
 the client within your code.
