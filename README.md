@@ -199,7 +199,7 @@ what values the API provides as a response to lookup requests.
 
 ### How to get an API key
 
-To obtain an API key please [contact us](mailto:support@saphetor.com)
+To obtain an API key please [contact us](mailto:support@saphetor.com).
 
 You can use the API without an API key, but performance and the number of queries will be 
 limited in order to safeguard our platform's reliability.
