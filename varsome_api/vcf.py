@@ -124,6 +124,7 @@ class VCFAnnotator(VarSomeAPIClient):
             # we may have some variants remaining if input batch is less than batch size
         if len(input_batch) > 0:
             self._process_request(input_batch)
+        self.vcf_writer.close()
         self.logger.info("Annotating %s variants in %s. "
                          "Filtered out %s. "
                          "Errors %s" % (self.total_varialts, time.time() - annotations_start,

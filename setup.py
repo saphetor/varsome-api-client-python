@@ -13,7 +13,7 @@ installation_requirements = [
     'jsonmodels>=2.2'
 ]
 if sys.version_info < (3, 4):
-    installation_requirements.append('asyncio')
+    installation_requirements.extend(['asyncio', 'unittest2'])
 setup(
     name='varsome_api_client',
     version=__versionstr__,
