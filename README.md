@@ -192,10 +192,11 @@ To obtain an API key please [contact us](mailto:support@saphetor.com)
 
 ### How to run the tests
 
-Clone the repository after creating a virtual environment, and run
+Clone the repository after creating a virtual environment, and run:
 
     python setup.py test
     
+Running the tests will install [nose](https://nose.readthedocs.io/en/latest/) in your virtual environment.
 In order to run the tests it is advised that you set the VARSOME_API_KEY env var to your api token,
 otherwise several tests will fail because the API will return a 429 (too many requests error) or 401 (Not authenticated).
 Be advised as well that running the tests will count towards your account request limit depending on the
