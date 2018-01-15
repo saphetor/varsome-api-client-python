@@ -1,7 +1,8 @@
 include LICENSE
 include MANIFEST.in
-include README.rst
+include README.md
 include setup.py
-include run.py
+recursive-include variantapi/test *.csv
+recursive-include variantapi/test *.vcf
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
