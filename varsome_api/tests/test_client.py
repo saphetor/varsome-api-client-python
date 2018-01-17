@@ -141,7 +141,7 @@ class TestVcfAnnotator(unittest.TestCase):
         self.annotator = TestVCFAnnotator(API_KEY)
 
     def test_annotate_vcf(self):
-        """Check that we can annotate a vcf file"""
+        """Check that wepara can annotate a vcf file"""
         output_vcf_file = NamedTemporaryFile(delete=False)
         output_vcf_file.close()
         self.annotator.annotate(VARIANTS_VCF_FILE, output_vcf_file.name)

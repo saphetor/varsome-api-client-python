@@ -50,7 +50,7 @@ class VarSomeAPIException(Exception):
 
 
 class VarSomeAPIClientBase(object):
-    _api_url = 'https://api.varsome.com'
+    _api_url = 'https://test-api.varsome.com'
     _accepted_methods = ('GET', 'POST')
 
     def __init__(self, api_key=None, logger=None):

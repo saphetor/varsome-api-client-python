@@ -24,7 +24,7 @@ from varsome_api.client import VarSomeAPIClient
 __author__ = 'ckopanos'
 
 
-def annotate_variant(argv):
+def annotate_variant():
     parser = argparse.ArgumentParser(description='Sample VarSome API calls')
     parser.add_argument('-k', help='Your key to the API', type=str, metavar='API Key', required=False)
     parser.add_argument('-g', help='Reference genome either hg19 or hg38', type=str, metavar='Reference Genome',
@@ -124,4 +124,4 @@ def annotate_variant(argv):
 
 
 if __name__ == "__main__":
-    annotate_variant(sys.argv[1:])
+    annotate_variant()
