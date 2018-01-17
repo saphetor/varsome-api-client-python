@@ -22,7 +22,7 @@ from varsome_api.vcf import VCFAnnotator
 __author__ = 'ckopanos'
 
 
-def annotate_vcf(argv):
+def annotate_vcf():
     parser = argparse.ArgumentParser(description='VCF Annotator command line')
     parser.add_argument('-k', help='Your key to the API', type=str, metavar='API Key', required=True)
     parser.add_argument('-g', help='Reference genome either hg19 or hg38', type=str, metavar='Reference Genome',
@@ -53,4 +53,4 @@ def annotate_vcf(argv):
 
 
 if __name__ == "__main__":
-    annotate_vcf(sys.argv[1:])
+    annotate_vcf()
