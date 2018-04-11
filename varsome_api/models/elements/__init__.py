@@ -15,3 +15,4 @@ from .iarc import *
 from .uniprot import *
 from .wustl import *
 from .gwas import *
+from .acmg import *
