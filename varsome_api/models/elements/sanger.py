@@ -40,7 +40,7 @@ class CosmicLicensedDrugEntry(models.Base):
 
 class CosmicLicensedDetails(models.Base):
     entry_type = fields.StringField(help_text="Entry type", required=False, nullable=True)
-    cosmic_id = fields.ListField(items_types=(str,), help_text="Cosmic ID", required=False, nullable=True)
+    cosmic_id = fields.ListField(items_types=(str, dict,), help_text="Cosmic ID", required=False, nullable=True)
     pub_med_references = fields.ListField(items_types=(int,), help_text="PUBMED References", required=False,
                                           nullable=True)
     histology_freq = fields.ListField(items_types=(int, str, float), help_text="Histology frequency", required=False,
@@ -84,6 +84,9 @@ class CosmicLicensedDetails(models.Base):
 class ComsicPublicDetails(models.Base):
     num_samples = fields.IntField(help_text='Number of samples')
     id = fields.StringField(help_text='Cosmic ID')
+    is_consistent = fields.BoolField(help_text='Cosmic ID is consistent across databases')
+
+
 
 
 class CosmicPublic(models.Base):

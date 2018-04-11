@@ -11,8 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
 from .fields import DictField
 from .elements import *
 
@@ -58,6 +56,7 @@ class AnnotatedVariant(models.Base):
     uniprot_variants = fields.ListField(required=False, items_types=(UniprotVariants,), help_text="UniProt variants")
     wustl_civic = fields.ListField(required=False, items_types=(Civic,), help_text="CIViC")
     gwas = fields.ListField(required=False, items_types=(GWAS,), help_text="GWAS")
+    acmg_annotation = fields.EmbeddedField(ACMG, required=False, nullable=True, help_text="ACMG Annotations")
 
     @property
     def genes(self):
