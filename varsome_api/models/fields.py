@@ -21,3 +21,28 @@ class DictField(fields.BaseField):
 
     types = (dict,)
 
+
+class NullableItemListField(fields.ListField):
+    """
+    A list field that accepts None as item types
+    """
+
+    def validate_single_value(self, item):
+        if item is None:
+            return
+        super().validate_single_value(item)
+
+    def parse_value(self, values):
+        """Cast value to proper collection."""
+        result = self.get_default_value()
+
+        if not values:
+            return result
+
+        if not isinstance(values, list):
+            return values
+
+        return [self._cast_value(value) if value is not None else None for value in values]
+
+
+
