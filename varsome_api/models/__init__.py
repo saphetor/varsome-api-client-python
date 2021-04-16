@@ -1,3 +1,2 @@
-__author__ = "ckopanos"
 
 
