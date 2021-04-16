@@ -14,14 +14,16 @@
 
 from jsonmodels import models, fields
 
-__author__ = "ckopanos"
-
 
 class ACMGClassification(models.Base):
     met_criteria = fields.BoolField()
     name = fields.StringField(help_text="ACMG Classification Name")
-    user_explain = fields.ListField(items_types=(str,), help_text="Criteria explanation", required=False,
-                                    nullable=True)
+    user_explain = fields.ListField(
+        items_types=(str,),
+        help_text="Criteria explanation",
+        required=False,
+        nullable=True,
+    )
 
 
 class ACMGRule(models.Base):
@@ -31,12 +33,21 @@ class ACMGRule(models.Base):
 
 
 class ACMGVerdict(models.Base):
-    classifications = fields.ListField(items_types=(str,), help_text="Classification names", required=False,
-                                       nullable=True)
+    classifications = fields.ListField(
+        items_types=(str,),
+        help_text="Classification names",
+        required=False,
+        nullable=True,
+    )
     ACMG_rules = fields.EmbeddedField(ACMGRule)
 
 
 class ACMG(models.Base):
-    classifications = fields.ListField(required=False, items_types=(ACMGClassification,),
-                                       help_text="ACMG Classifications")
-    verdict = fields.EmbeddedField(ACMGVerdict, nullable=True, required=False, help_text="ACMG Verdict")
+    classifications = fields.ListField(
+        required=False,
+        items_types=(ACMGClassification,),
+        help_text="ACMG Classifications",
+    )
+    verdict = fields.EmbeddedField(
+        ACMGVerdict, nullable=True, required=False, help_text="ACMG Verdict"
+    )

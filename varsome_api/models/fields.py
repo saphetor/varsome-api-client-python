@@ -14,8 +14,6 @@
 
 from jsonmodels import fields
 
-__author__ = "ckopanos"
-
 
 class DictField(fields.BaseField):
 
@@ -42,7 +40,6 @@ class NullableItemListField(fields.ListField):
         if not isinstance(values, list):
             return values
 
-        return [self._cast_value(value) if value is not None else None for value in values]
-
-
-
+        return [
+            self._cast_value(value) if value is not None else None for value in values
+        ]
