@@ -99,6 +99,32 @@ process split_variants_in_sets {
 ch_variant_query_sets = ch_variant_query_sets.flatten()
 
 
+process annotate_variants {
+
+    publishDir "${params.outdir}/annotated_variant_sets", mode: 'copy'
+
+    input:
+    file(variant_query_set) from ch_variant_query_sets
+    each file("varsome_api_run.py") from ch_varsome_api_script
+    each file("varsome_api") from ch_varsome_api_src
+
+    output:
+    file("${variant_query_set}.json") into ch_annotated_variant_sets
+
+    """
+    python varsome_api_run.py \
+        -g ${params.genome} \
+        -k '${params.key}' \
+        -i ${variant_query_set} \
+        -p add-all-data=${params.add_all_data} \
+           add-ACMG-annotation=${params.add_ACMG_annotation} \
+           add-source-databases=${params.add_source_databases} \
+           add-region-databases=${params.add_region_databases} \
+           expand-pubmed-articles=${params.expand_pubmed_articles} \
+    | jq -c '.' > ${variant_query_set}.json
+    """
+  }
+
 /*
  * Completion notification
  */
