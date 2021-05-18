@@ -61,7 +61,7 @@ ch_varsome_api_script = Channel.fromPath("${projectDir}/bin/scripts/varsome_api_
 ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/scripts/varsome_api",  type: 'dir', followLinks: false)
 ch_make_variants_list_script = Channel.fromPath("${projectDir}/bin/make_variant_list.sh",  type: 'file', followLinks: false)
 
-// Define Process
+
 process vreate_list_of_variants {
 
     label 'low_memory'
@@ -78,6 +78,25 @@ process vreate_list_of_variants {
     bash make_variant_list.sh ${input_file} > ${input_file.baseName}_variants.txt
     """
   }
+
+
+process split_variants_in_sets {
+
+    label 'low_memory'
+    publishDir "${params.outdir}/variant_sets", mode: 'copy'
+
+    input:
+    file(variant_list) from ch_variant_list
+
+    output:
+    file("${variant_list.baseName}.*") into ch_variant_query_sets
+
+    """
+    split --numeric-suffixes --suffix-length=${params.variant_query_set_suffix_lenght} --lines=${params.variant_query_size} ${variant_list} ${variant_list.baseName}.
+    """
+  }
+
+ch_variant_query_sets = ch_variant_query_sets.flatten()
 
 
 /*
