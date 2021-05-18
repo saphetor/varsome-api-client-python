@@ -56,6 +56,14 @@ Channel
     .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
     .set { ch_input }
 
+// Obtain pathogenicity filter values from file
+Channel
+    .fromPath(params.pathogenicity_filter_values)
+    .splitText()
+    .map { '"'+it.trim()+'"'}
+    .toList()
+    .set { ch_pathogenicity_filter_values_array }
+
 projectDir = workflow.projectDir
 ch_varsome_api_script = Channel.fromPath("${projectDir}/bin/scripts/varsome_api_run.py",  type: 'file', followLinks: false)
 ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/scripts/varsome_api",  type: 'dir', followLinks: false)
@@ -77,7 +85,7 @@ process vreate_list_of_variants {
     """
     bash make_variant_list.sh ${input_file} > ${input_file.baseName}_variants.txt
     """
-  }
+}
 
 
 process split_variants_in_sets {
@@ -94,7 +102,7 @@ process split_variants_in_sets {
     """
     split --numeric-suffixes --suffix-length=${params.variant_query_set_suffix_lenght} --lines=${params.variant_query_size} ${variant_list} ${variant_list.baseName}.
     """
-  }
+}
 
 ch_variant_query_sets = ch_variant_query_sets.flatten()
 
@@ -123,7 +131,30 @@ process annotate_variants {
            expand-pubmed-articles=${params.expand_pubmed_articles} \
     | jq -c '.' > ${variant_query_set}.json
     """
-  }
+}
+
+
+process filter_variants {
+
+    input:
+    file(annotated_variant_set) from ch_annotated_variant_sets
+    val(pathogenicity_filter_values_array) from ch_pathogenicity_filter_values_array
+
+    output:
+    file("${annotated_variant_set}_filtered.json") into ch_filtered_variant_sets
+
+    """
+    filters='${pathogenicity_filter_values_array}'
+
+    cat ${annotated_variant_set} \
+    | jq ".[] | select( [.acmg_annotation.verdict.ACMG_rules.verdict] | inside(\$filters) )" \
+    | jq '.' -s > ${annotated_variant_set}_filtered.json
+    """
+}
+
+
+ch_filtered_variant_sets = ch_filtered_variant_sets.collect()
+
 
 /*
  * Completion notification
