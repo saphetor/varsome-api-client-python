@@ -5,13 +5,13 @@ def helpMessage() {
     Usage:
     The typical command for running the pipeline is as follows:
     nextflow run main.nf --bams sample.bam [Options]
-    
+
     Inputs Options:
     --input         Input file
 
     Resource Options:
     --max_cpus      Maximum number of CPUs (int)
-                    (default: $params.max_cpus)  
+                    (default: $params.max_cpus)
     --max_memory    Maximum memory (memory unit)
                     (default: $params.max_memory)
     --max_time      Maximum time (time unit)
@@ -56,20 +56,26 @@ Channel
     .ifEmpty { exit 1, "Cannot find input file : ${params.input}" }
     .set { ch_input }
 
+projectDir = workflow.projectDir
+ch_varsome_api_script = Channel.fromPath("${projectDir}/bin/scripts/varsome_api_run.py",  type: 'file', followLinks: false)
+ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/scripts/varsome_api",  type: 'dir', followLinks: false)
+ch_make_variants_list_script = Channel.fromPath("${projectDir}/bin/make_variant_list.sh",  type: 'file', followLinks: false)
 
 // Define Process
-process vep_annotate {
-//    tag "$sample_name"
+process vreate_list_of_variants {
+
     label 'low_memory'
     publishDir "${params.outdir}", mode: 'copy'
 
     input:
     file(input_file) from ch_input
+    file("make_variant_list.sh") from ch_make_variants_list_script
 
     output:
-    tuple file("${input_file}_out.txt"), file("${input_file}_out.txt_*") into ch_out
+    file("${input_file.baseName}_variants.txt") into ch_variant_list
 
     """
+    bash make_variant_list.sh ${input_file} > ${input_file.baseName}_variants.txt
     """
   }
 
