@@ -66,7 +66,7 @@ Channel
 
 projectDir = workflow.projectDir
 ch_varsome_api_script = Channel.fromPath("${projectDir}/bin/scripts/varsome_api_run.py",  type: 'file', followLinks: false)
-ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/scripts/varsome_api",  type: 'dir', followLinks: false)
+ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/varsome_api",  type: 'dir', followLinks: false)
 ch_make_variants_list_script = Channel.fromPath("${projectDir}/bin/make_variant_list.sh",  type: 'file', followLinks: false)
 
 
@@ -129,7 +129,10 @@ process annotate_variants {
            add-source-databases=${params.add_source_databases} \
            add-region-databases=${params.add_region_databases} \
            expand-pubmed-articles=${params.expand_pubmed_articles} \
-    | jq -c '.' > ${variant_query_set}.json
+        -o ${variant_query_set}_multiline.json
+
+    jq -c '.' ${variant_query_set}_multiline.json > ${variant_query_set}.json
+    #rm ${variant_query_set}_multiline.json
     """
 }
 
@@ -154,6 +157,22 @@ process filter_variants {
 
 
 ch_filtered_variant_sets = ch_filtered_variant_sets.collect()
+
+
+process merge_filtered_variants {
+
+    publishDir "${params.outdir}", mode: 'copy'
+
+    input:
+    file(files) from ch_filtered_variant_sets
+
+    output:
+    file("${files[1].simpleName}_merged_filtered_variants.json") into ch_merged_filtered_variants
+
+    """
+    jq -s '[.[][]]' *.json > "${files[1].simpleName}_merged_filtered_variants.json"
+    """
+}
 
 
 /*
