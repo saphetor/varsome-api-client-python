@@ -1,0 +1,19 @@
+# You can use this file to create a conda environment for this pipeline:
+#   conda env create -f environment.yml
+name: varsome-api-client-python
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  # conda-forge channel packages first
+  - python=3.8
+  - pandas
+  - jq
+  - pip
+  - pip:
+    - https://github.com/saphetor/varsome-api-client-python/archive/master.zip
+
+  # bioconda channel packages second
+  # defaults channel packages third
+  - fonts-anaconda

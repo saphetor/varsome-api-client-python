@@ -1,0 +1,13 @@
+# Ignore the following
+work/
+results/
+assets/
+.nextflow*
+.nextflow/
+.gitignore
+README.md
+main.nf
+nextflow.config
+.github/
+conf/
+docs/
