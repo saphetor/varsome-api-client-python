@@ -68,6 +68,7 @@ projectDir = workflow.projectDir
 ch_varsome_api_script = Channel.fromPath("${projectDir}/bin/scripts/varsome_api_run.py",  type: 'file', followLinks: false)
 ch_varsome_api_src   = Channel.fromPath("${projectDir}/bin/varsome_api",  type: 'dir', followLinks: false)
 ch_make_variants_list_script = Channel.fromPath("${projectDir}/bin/make_variant_list.sh",  type: 'file', followLinks: false)
+ch_json2csv_script = Channel.fromPath("${projectDir}/bin/json2csv.py",  type: 'file', followLinks: false)
 
 
 process vreate_list_of_variants {
@@ -171,6 +172,23 @@ process merge_filtered_variants {
 
     """
     jq -s '[.[][]]' *.json > "${files[1].simpleName}_merged_filtered_variants.json"
+    """
+}
+
+
+process convert_to_csv {
+
+    publishDir "${params.outdir}", mode: 'copy'
+
+    input:
+    file(merged_filtered_variants) from ch_merged_filtered_variants
+    file ("json2csv.py") from ch_json2csv_script
+
+    output:
+    file("${merged_filtered_variants.baseName}.csv") into ch_merged_filtered_variants_csv
+
+    """
+    python json2csv.py -i ${merged_filtered_variants} -o ${merged_filtered_variants.baseName}.csv
     """
 }
 
