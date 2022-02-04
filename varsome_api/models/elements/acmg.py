@@ -40,3 +40,4 @@ class ACMG(models.Base):
     classifications = fields.ListField(required=False, items_types=(ACMGClassification,),
                                        help_text="ACMG Classifications")
     verdict = fields.EmbeddedField(ACMGVerdict, nullable=True, required=False, help_text="ACMG Verdict")
+    transcript = fields.StringField(required=False, nullable=True)
