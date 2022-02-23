@@ -9,7 +9,8 @@ __versionstr__ = '.'.join(map(str, VERSION))
 here = path.abspath(path.dirname(__file__))
 installation_requirements = [
     'requests>=2.0.0, <3.0.0',
-    'PyVCF>=0.6.8',
+    #'PyVCF>=0.6.8',
+    'PyVCF>=0.4.3',
     'jsonmodels>=2.2'
 ]
 if sys.version_info < (3, 4):
