@@ -223,4 +223,4 @@ The staging-api.varsome.com environment is a free usage test environment for sub
 
 It contains a substantial, but partial, data-set. Additionally it is throttled and is limited in the types of queries you can run. For example, it allows for only a limited number of samples and a limited size of data.
 
-Please note: For this reason API queries performed against the staging environment within the client may not always run correctly or may produce different results to the production environment.
+**Please note: For this reason API queries performed against the staging environment within the client may not always run correctly or may produce different results to the production environment.**
