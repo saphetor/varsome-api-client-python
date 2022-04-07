@@ -2,7 +2,15 @@
 
 ## A basic API client implementation for [api.varsome.com](https://api.varsome.com)
 
-This client is still in beta but it is a good for playing around with the API.
+This tool contains examples for the Varsome API usage. It can be used against either the production server ([api.varsome.com](https://api.varsome.com)) or the staging server ( ([staging-api.varsome.com](https://staging-api.varsome.com)))
+
+### Staging-api environment
+
+The staging-api.varsome.com environment is a free usage test environment for subscribers. It is the perfect environment for evaluating the performance of the API. It is updated on an adhoc basis at our discretion, either together with live or possibly ahead of live in order to test upcoming new features. 
+
+It contains a substantial, but partial, data-set. Additionally it is throttled and is limited in the types of queries you can run. For example, it allows for only a limited number of samples and a limited size of data.
+
+**Please note: For this reason API queries performed against the staging environment within the client may not always run correctly or may produce different results to the production environment.**
 
 ### Python versions
 
@@ -216,11 +224,3 @@ To run the tests, set the `VARSOME_API_KEY` environment variable to your API tok
 tests will fail because the API will return a 401 (not authenticated) error.
 Be advised as well that running the tests will count towards your account request limit depending on the
 API package you are subscribed to.
-
-### Staging-api environment
-
-The staging-api.varsome.com environment is a free usage test environment for subscribers. It is the perfect environment for evaluating the performance of the API. It is updated on an adhoc basis at our discretion, either together with live or possibly ahead of live in order to test upcoming new features. 
-
-It contains a substantial, but partial, data-set. Additionally it is throttled and is limited in the types of queries you can run. For example, it allows for only a limited number of samples and a limited size of data.
-
-**Please note: For this reason API queries performed against the staging environment within the client may not always run correctly or may produce different results to the production environment.**
