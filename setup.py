@@ -24,12 +24,6 @@ setup(
     scripts=["scripts/varsome_api_run.py", "scripts/varsome_api_annotate_vcf.py"],
     url="https://github.com/saphetor/varsome-api-client-python",
     license="Apache License, Version 2.0",
-    test_suite="nose.collector",
-    tests_require=["nose"],
-    include_package_data=True,
-    package_data={
-        "": ["*.vcf", "*.csv"],
-    },
     author="Saphetor S.A.",
     author_email="support@saphetor.com",
     description="A basic python api client implementation for https://api.varsome.com",
