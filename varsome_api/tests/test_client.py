@@ -23,11 +23,11 @@ try:
 except AttributeError:
     import unittest2 as unittest
 
-import vcf
-from vcf.parser import _Info
+
+from vcf.parser import _Info, _encode_type
 from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
 from varsome_api.models.variant import AnnotatedVariant
-from varsome_api.vcf import VCFAnnotator as BaseVCFAnnotator
+from varsome_api.vcf import VCFAnnotator as BaseVCFAnnotator, vcf_reader
 
 API_KEY = os.getenv("VARSOME_API_KEY", None)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -141,6 +141,7 @@ class VCFAnnotator(BaseVCFAnnotator):
             "GnomAD genomes allele number value",
             None,
             None,
+            _encode_type("Integer"),
         )
 
 
@@ -154,9 +155,11 @@ class TestVcfAnnotator(unittest.TestCase):
         output_vcf_file = NamedTemporaryFile(delete=False)
         output_vcf_file.close()
         self.annotator.annotate(VARIANTS_VCF_FILE, output_vcf_file.name)
-        vcf_reader = vcf.Reader(filename=output_vcf_file.name, strict_whitespace=True)
-        self.assertTrue("gnomad_genomes_AN" in vcf_reader.infos)
-        for i, record in enumerate(vcf_reader):
-            with self.subTest(i=i):
-                self.assertTrue("gnomad_genomes_AN" in record.INFO)
+        with vcf_reader(
+            filename=output_vcf_file.name, strict_whitespace=True
+        ) as reader:
+            self.assertTrue("gnomad_genomes_AN" in reader.infos)
+            for i, record in enumerate(reader):
+                with self.subTest(i=i):
+                    self.assertTrue("gnomad_genomes_AN" in record.INFO)
         self.annotator.session.close()

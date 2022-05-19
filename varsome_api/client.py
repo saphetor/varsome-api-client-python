@@ -17,8 +17,9 @@ import concurrent.futures
 import logging
 import os
 import re
-import requests
 from itertools import chain
+
+import requests
 from requests.exceptions import HTTPError, Timeout, ConnectionError, RequestException
 
 
@@ -57,7 +58,7 @@ class VarSomeAPIClientBase(object):
     _api_url = "https://api.varsome.com"
     _accepted_methods = ("GET", "POST")
 
-    def __init__(self, api_key=None, logger=None):
+    def __init__(self, api_key=None, logger=None, api_url=None):
         if logger is None:
             BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
             logger = logging.getLogger(__name__)
@@ -69,6 +70,8 @@ class VarSomeAPIClientBase(object):
             ch.setLevel(logging.DEBUG)
             ch.setFormatter(formatter)
             logger.addHandler(ch)
+        if api_url is not None:
+            self._api_url = api_url
         self.logger = logger
         self.api_key = api_key
         self._headers = {
@@ -147,11 +150,14 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
     ref_genome_lookup_path = lookup_path + "/%s"
     batch_lookup_path = "/lookup/batch/%s"
 
-    def __init__(self, api_key=None, max_variants_per_batch=200):
-        super(VarSomeAPIClient, self).__init__(api_key)
+    def __init__(
+        self, api_key=None, logger=None, api_url=None, max_variants_per_batch=200
+    ):
+        super(VarSomeAPIClient, self).__init__(api_key, logger, api_url)
         self.max_variants_per_batch = max_variants_per_batch
 
-    def query_is_variant_id(self, query):
+    @staticmethod
+    def query_is_variant_id(query):
         """
         Query may be a variat identifier developed by Saphetor
         :param query:

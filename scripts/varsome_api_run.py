@@ -70,12 +70,21 @@ def annotate_variant():
         metavar="Output File with json entries",
         required=False,
     )
+    parser.add_argument(
+        "-u",
+        help="Use specific VarSome API host url "
+        "(e.g. https://api.varsome.com or https://stable-api.varsome.com",
+        type=str,
+        required=False,
+        metavar="VarSome API host url",
+    )
     args = parser.parse_args()
     api_key = args.k
     query = args.q
     ref_genome = args.g
     input_file = args.i
     output_file = args.o
+    api_url = args.u
     if query and input_file:
         sys.stderr.write(
             "Don't specify -i and -q options together. Use only one of them\n"
@@ -95,7 +104,7 @@ def annotate_variant():
         request_parameters = {
             param[0]: param[1] for param in [param.split("=") for param in args.p]
         }
-    api = VarSomeAPIClient(api_key)
+    api = VarSomeAPIClient(api_key, api_url=api_url)
     if query:
         if len(query) == 1:
             result = api.lookup(

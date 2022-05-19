@@ -2,7 +2,7 @@
 
 ## A basic API client implementation for [api.varsome.com](https://api.varsome.com)
 
-This tool contains examples for the Varsome API usage. It can be used against either the production server ([api.varsome.com](https://api.varsome.com)) or the staging server ( ([staging-api.varsome.com](https://staging-api.varsome.com)))
+This tool contains examples for the Varsome API usage. It can be used against either the production server ([api.varsome.com](https://api.varsome.com)) or the staging server ([staging-api.varsome.com](https://staging-api.varsome.com)) or the stable api server ([stable-api.varsome.com](https://stable-api.varsome.com))
 
 ### Staging-api environment
 
@@ -77,7 +77,7 @@ Using the API client is quite straightforward. Just install the API client packa
 from varsome_api.client import VarSomeAPIClient
 # API key is not required for single variant lookups
 api_key = 'Your token'
-api = VarSomeAPIClient(api_key)
+api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
 # fetch information about a variant into a dictionary
 result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
 # access results e.g. the transcripts of the variant
@@ -105,7 +105,7 @@ except VarSomeAPIException as e:
 
 To view available request parameters (used by the `params` method parameter), refer to an example at [api.varsome.com](https://api.varsome.com).
 
-To understand how annotation properties are included in the JSON response, please refer to the relevant [schema](https://api.varsome.com/lookup/schema).
+To understand how annotation properties are included in the JSON response, please refer to the relevant [schema](https://api.varsome.com/docs/variants/).
 
 #### JSON response wrapper
 
@@ -171,7 +171,7 @@ To annotate the VCF file with the annotations that you are interested in, you ne
 
 ```python
 from varsome_api.vcf import VCFAnnotator
-from vcf.parser import _Info
+from vcf.parser import _Info, _encode_type
 class MyVCFAnnotator(VCFAnnotator):
 
     def annotate_record(self, record, variant_result):
@@ -192,8 +192,9 @@ class MyVCFAnnotator(VCFAnnotator):
         :param vcf_template: vcf reader object
         :return:
         """
-        vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', '.', 'Integer',
-                                                             'GnomAD exomes allele number value', None, None)
+        vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', 1, 'Integer',
+                                                       'GnomAD exomes allele number value', 
+                                                       None, None, _encode_type("Integer"),)
         # if you wish to also include the default headers
         # super().add_vcf_header_info(vcf_template)
 
