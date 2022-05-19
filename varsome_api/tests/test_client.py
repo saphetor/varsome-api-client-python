@@ -27,8 +27,7 @@ import vcf
 from vcf.parser import _Info
 from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
 from varsome_api.models.variant import AnnotatedVariant
-from varsome_api.vcf import VCFAnnotator
-
+from varsome_api.vcf import VCFAnnotator as BaseVCFAnnotator
 
 API_KEY = os.getenv("VARSOME_API_KEY", None)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -129,8 +128,8 @@ class TestApiResponse(unittest.TestCase):
                 self.assertEqual(result["pos"], annotated_variant.pos)
 
 
-class TestVCFAnnotator(VCFAnnotator):
-    def annotate_record(self, record, variant_result):
+class VCFAnnotator(BaseVCFAnnotator):
+    def annotate_record(self, record, variant_result, original_variant):
         record.INFO["gnomad_genomes_AN"] = variant_result.gnomad_genomes_an
         return record
 
@@ -148,7 +147,7 @@ class TestVCFAnnotator(VCFAnnotator):
 class TestVcfAnnotator(unittest.TestCase):
     def __init__(self, methodName="runTest"):
         super().__init__(methodName)
-        self.annotator = TestVCFAnnotator(API_KEY)
+        self.annotator = VCFAnnotator(API_KEY)
 
     def test_annotate_vcf(self):
         """Check that we can annotate a vcf file"""
@@ -160,5 +159,4 @@ class TestVcfAnnotator(unittest.TestCase):
         for i, record in enumerate(vcf_reader):
             with self.subTest(i=i):
                 self.assertTrue("gnomad_genomes_AN" in record.INFO)
-        vcf_reader._reader.close()
         self.annotator.session.close()
