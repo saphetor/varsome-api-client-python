@@ -11,8 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-
+import contextlib
 import os
 import time
 from collections import OrderedDict
@@ -22,6 +21,13 @@ from vcf.parser import _Info
 
 from varsome_api.client import VarSomeAPIClient
 from varsome_api.models.variant import AnnotatedVariant
+
+
+@contextlib.contextmanager
+def vcf_writer(*args, **kwargs):
+    writer = vcf.Writer(*args, **kwargs)
+    yield writer
+    writer.close()
 
 
 class VCFAnnotator(VarSomeAPIClient):
@@ -102,6 +108,7 @@ class VCFAnnotator(VarSomeAPIClient):
         to include variant result properties you want in your output vcf
         :param record: vcf record object
         :param variant_result: AnnotatedVariant object
+        :param original_variant: The variant as present in the request
         :return: annotated record object
         """
         record.INFO["variant_id"] = variant_result.variant_id
@@ -188,29 +195,28 @@ class VCFAnnotator(VarSomeAPIClient):
             )
         )
         self.add_vcf_header_info(vcf_template)
-        vcf_writer = vcf.Writer(open(output_vcf_file, "w"), vcf_template)
-        input_batch = OrderedDict()
-        # this will keep the request queue large enough so that parallel requests will not stop executing
-        batch_limit = self.max_variants_per_batch * self.max_threads * 2
-        for record in vcf_reader:
-            for alt_seq in record.ALT:
-                requested_variant = "%s:%s:%s:%s" % (
-                    record.CHROM,
-                    record.POS,
-                    record.REF or "",
-                    alt_seq or "",
-                )
-                input_batch[requested_variant] = record
-                self.total_variants += 1
-            if len(input_batch) < batch_limit:
-                continue
-            self._process_request(input_batch, vcf_writer)
-            # reset input batch
+        with vcf_writer(open(output_vcf_file, "w"), vcf_template) as writer:
             input_batch = OrderedDict()
-            # we may have some variants remaining if input batch is less than batch size
-        if len(input_batch) > 0:
-            self._process_request(input_batch, vcf_writer)
-        vcf_writer.close()
+            # this will keep the request queue large enough so that parallel requests will not stop executing
+            batch_limit = self.max_variants_per_batch * self.max_threads * 2
+            for record in vcf_reader:
+                for alt_seq in record.ALT:
+                    requested_variant = "%s:%s:%s:%s" % (
+                        record.CHROM,
+                        record.POS,
+                        record.REF or "",
+                        alt_seq or "",
+                    )
+                    input_batch[requested_variant] = record
+                    self.total_variants += 1
+                if len(input_batch) < batch_limit:
+                    continue
+                self._process_request(input_batch, writer)
+                # reset input batch
+                input_batch = OrderedDict()
+                # we may have some variants remaining if input batch is less than batch size
+            if len(input_batch) > 0:
+                self._process_request(input_batch, writer)
         self.logger.info(
             "Annotating %s variants in %s. "
             "Filtered out %s. "
