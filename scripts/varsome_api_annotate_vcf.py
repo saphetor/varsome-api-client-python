@@ -44,7 +44,7 @@ def annotate_vcf():
     )
     parser.add_argument(
         "-p",
-        help="Request parameters e.g. add-all-data=1 expand-pubmed-articles=0",
+        help="Request parameters e.g. add-all-data=1 add-ACMG-annotation=1",
         type=str,
         metavar="Request Params",
         required=False,
@@ -58,12 +58,21 @@ def annotate_vcf():
         required=False,
         metavar="Number of threads",
     )
+    parser.add_argument(
+        "-u",
+        help="Use specific VarSome API host url "
+        "(e.g. https://api.varsome.com or https://stable-api.varsome.com",
+        type=str,
+        required=False,
+        metavar="VarSome API host url",
+    )
     args = parser.parse_args()
     api_key = args.k
     vcf_file = args.i
     output_vcf_file = args.o
     ref_genome = args.g
     num_threads = args.t
+    api_url = args.u
     request_parameters = None
     if args.p:
         request_parameters = {
@@ -71,6 +80,7 @@ def annotate_vcf():
         }
     vcf_annotator = VCFAnnotator(
         api_key=api_key,
+        api_url=api_url,
         ref_genome=ref_genome,
         get_parameters=request_parameters,
         max_threads=num_threads,
