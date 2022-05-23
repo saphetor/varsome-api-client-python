@@ -2,7 +2,7 @@
 
 ## A basic API client implementation for [api.varsome.com](https://api.varsome.com)
 
-This tool contains examples for the Varsome API usage. It can be used against either the production server ([api.varsome.com](https://api.varsome.com)) or the staging server ([staging-api.varsome.com](https://staging-api.varsome.com)) or the stable api server ([stable-api.varsome.com](https://stable-api.varsome.com))
+This tool contains examples for the Varsome API usage. It can be used against the production server ([api.varsome.com](https://api.varsome.com)), the staging server ([staging-api.varsome.com](https://staging-api.varsome.com)) or the stable api server ([stable-api.varsome.com](https://stable-api.varsome.com))
 
 ### Staging-api environment
 
