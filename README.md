@@ -69,6 +69,13 @@ Notice, however, that not all available annotations will be present in the `anno
 of the returned annotations will be available when running this script. See the "Using the client in your code" 
 section below for how to annotate a VCF file with the annotations that are of interest to you. 
 
+*Warning*: varsome_api_annotate_vcf.py can only deal with:
+
+- SNPs
+- small indels (up to 200bp)
+
+If you want to use this script please remove any variant from your VCF that does not meet the above criteria.
+
 ### Using the client in your code
 
 Using the API client is quite straightforward. Just install the API client package and use the following in your code:
