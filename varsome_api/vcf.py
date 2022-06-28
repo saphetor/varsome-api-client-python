@@ -227,12 +227,17 @@ class VCFAnnotator(VarSomeAPIClient):
                     input_batch = OrderedDict()
                     batch_limit = self.max_variants_per_batch * self.max_threads * 2
                     for record in reader:
+                        reference_sequence = record.REF
+                        if reference_sequence is None or reference_sequence == ".":
+                            reference_sequence = ""
                         for alt_seq in record.ALT:
+                            if alt_seq is None or alt_seq == ".":
+                                alt_seq = ""
                             requested_variant = "%s:%s:%s:%s" % (
                                 record.CHROM,
                                 record.POS,
-                                record.REF or "",
-                                alt_seq or "",
+                                reference_sequence,
+                                alt_seq,
                             )
                             input_batch[requested_variant] = record
                             self.total_variants += 1
