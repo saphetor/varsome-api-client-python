@@ -190,7 +190,7 @@ class MyVCFAnnotator(VCFAnnotator):
         """
         record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
         # if you wish to also include the default annotations
-        # return super().annotate_record(record, variant_result)
+        # return super().annotate_record(record, variant_result, original_variant)
         return record
 
 
