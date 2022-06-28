@@ -181,10 +181,11 @@ from varsome_api.vcf import VCFAnnotator
 from vcf.parser import _Info, _encode_type
 class MyVCFAnnotator(VCFAnnotator):
 
-    def annotate_record(self, record, variant_result):
+    def annotate_record(self, record, variant_result, original_variant):
         """
         :param record: vcf record object
         :param variant_result: AnnotatedVariant object
+        :param original_variant: The variant that was looked up
         :return: annotated record object
         """
         record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
