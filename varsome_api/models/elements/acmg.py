@@ -51,3 +51,6 @@ class ACMG(models.Base):
     verdict = fields.EmbeddedField(
         ACMGVerdict, nullable=True, required=False, help_text="ACMG Verdict"
     )
+    coding_impact = fields.StringField(required=False, nullable=True)
+    transcript = fields.StringField(required=False, nullable=True)
+    transcript_reason = fields.StringField(required=False, nullable=True)
