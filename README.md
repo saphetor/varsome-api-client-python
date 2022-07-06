@@ -20,18 +20,22 @@ Requires at least Python 3.3, you can download the latest version from [www.pyth
 
 We suggest that you create a python virtual environment instead of globally installing the library.
 
-There are several ways to create a virtual environment, but you can refer to [pip installation](https://pip.pypa.io/en/stable/installing/) and
-[virtualenv installation](https://virtualenv.pypa.io/en/stable/installation/) to first install these 2 tools if you don't
+There are several ways to create a virtual environment, but you can refer to [pip installation](https://pip.pypa.io/en/stable/installation/) and
+[virtualenv installation](https://virtualenv.pypa.io/en/latest/installation.html) to first install these 2 tools if you don't
 have them already installed via a package manager (Linux) or HomeBrew (MacOS), etc. 
 Remember to use "sudo -H" when installing on Mac.
 
-To create a virtual environment, you can follow the [user guide](https://virtualenv.pypa.io/en/stable/userguide/) or simply run:
+To create a virtual environment, you can follow the [user guide](https://virtualenv.pypa.io/en/latest/user_guide.html) or simply run:
 
     virtualenv -p path_to/python3 venv_dir_name
 
 Activate the virtual environment:
 
     source venv_dir_name/bin/activate
+
+You will also need to install the requests module:
+
+    pip install requests
 
 Finally, to use the client, either download or clone the repository from github and place the `varsome_api` 
 folder inside your project's directory, or run:
@@ -159,10 +163,88 @@ except IndexError:
     pass # no gnomad exomes annotation for the variant
 ```
 
+#### Complete examples to try yourself
+
+Below there are examples utilizing cancer, tissue type and phenotypes, diseases options.
+
+```python
+from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
+from varsome_api.models.variant import AnnotatedVariant
+
+
+api_key = 'Your token'
+api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
+
+try:
+    result = api.lookup(
+        "chr22-29091857-G-",
+        params={
+            "add-source-databases": "gnomad-exomes,refseq-transcripts",
+            "annotation-mode": "somatic",
+            "cancer-type": "Prostate Adenocarcinoma",
+            "tissue-type": "Prostate",
+        },
+        ref_genome="hg19",
+    )
+except VarSomeAPIException as e:
+    print(e)
+
+annotated_variant = AnnotatedVariant(**result)
+print(
+    annotated_variant.chromosome,
+    annotated_variant.genes,
+    annotated_variant.gnomad_exomes_af,
+)
+try:
+    allele_number = [
+        gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes
+    ]
+except IndexError:
+    pass
+print(allele_number)
+```
+
+```python
+from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
+from varsome_api.models.variant import AnnotatedVariant
+
+api_key = 'Your token'
+api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
+
+try:
+    result = api.lookup(
+        "15:68500735:C:T",
+        params={
+            "add-source-databases": "gnomad-exomes,refseq-transcripts",
+            "annotation-mode": "germline",
+            "patient-phenotypes": "Progressive Visual Loss",
+            "diseases": "Neuronal Ceroid Lipofuscinosis 4A",
+        },
+        ref_genome="hg19",
+    )
+except VarSomeAPIException as e:
+    print(e)
+
+annotated_variant = AnnotatedVariant(**result)
+print(
+    annotated_variant.chromosome,
+    annotated_variant.alt,
+    annotated_variant.genes,
+    annotated_variant.gnomad_exomes_af,
+)
+try:
+    allele_number = [
+        gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes
+    ]
+except IndexError:
+    pass
+print(allele_number)
+```
+
 #### Annotating a VCF using the client
 
 To annotate a VCF you can base your code on the VCFAnnotator object. This provides a basic implementation that
-will annotate a VCF file using a set of the available annotations. It uses [PyVCF](https://github.com/jamescasbon/PyVCF) to read and write to VCF files.
+will annotate a VCF file using a set of the available annotations. It uses [PyVCF](https://pyvcf.readthedocs.io/en/latest/) to read and write to VCF files.
 
 ```python
 from varsome_api.vcf import VCFAnnotator
@@ -181,6 +263,7 @@ from varsome_api.vcf import VCFAnnotator
 from vcf.parser import _Info, _encode_type
 class MyVCFAnnotator(VCFAnnotator):
 
+
     def annotate_record(self, record, variant_result, original_variant):
         """
         :param record: vcf record object
@@ -188,11 +271,10 @@ class MyVCFAnnotator(VCFAnnotator):
         :param original_variant: The variant that was looked up
         :return: annotated record object
         """
-        record.INFO['gnomad_exomes_AN'] = variant_result.gnomad_exomes_an
+        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
         # if you wish to also include the default annotations
         # return super().annotate_record(record, variant_result, original_variant)
         return record
-
 
     def add_vcf_header_info(self, vcf_template):
         """
@@ -200,9 +282,15 @@ class MyVCFAnnotator(VCFAnnotator):
         :param vcf_template: vcf reader object
         :return:
         """
-        vcf_template.infos['gnomad_exomes_AN'] = _Info('gnomad_exomes_AN', 1, 'Integer',
-                                                       'GnomAD exomes allele number value', 
-                                                       None, None, _encode_type("Integer"),)
+        vcf_template.infos["gnomad_exomes_AN"] = _Info(
+            "gnomad_exomes_AN",
+            1,
+            "Integer",
+            "GnomAD exomes allele number value",
+            None,
+            None,
+            _encode_type("Integer"),
+        )
         # if you wish to also include the default headers
         # super().add_vcf_header_info(vcf_template)
 
