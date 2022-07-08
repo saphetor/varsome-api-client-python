@@ -33,10 +33,6 @@ Activate the virtual environment:
 
     source venv_dir_name/bin/activate
 
-You will also need to install the requests module:
-
-    pip install requests
-
 Finally, to use the client, either download or clone the repository from github and place the `varsome_api` 
 folder inside your project's directory, or run:
 
@@ -298,6 +294,119 @@ api_key = 'Your token'
 vcf_annotator = MyVCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
 vcf_file = 'input.vcf'
 output_vcf_file = 'annotated.vcf'
+vcf_annotator.annotate(vcf_file, output_vcf_file)
+```
+
+#### Complete examples to try yourself
+
+Below there are examples utilizing cancer, tissue type and phenotypes, diseases options. 
+Keep in mind that these options are subjective to your vcf file.
+
+```python
+from varsome_api.vcf import VCFAnnotator
+from vcf.parser import _Info, _encode_type
+
+
+class MyVCFAnnotator(VCFAnnotator):
+    def annotate_record(self, record, variant_result, original_variant):
+        """
+        :param record: vcf record object
+        :param variant_result: AnnotatedVariant object
+        :param original_variant: The variant that was looked up
+        :return: annotated record object
+        """
+        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
+        # if you wish to also include the default annotations
+        # return super().annotate_record(record, variant_result, original_variant)
+        return record
+
+    def add_vcf_header_info(self, vcf_template):
+        """
+        Adds vcf INFO headers for the annotated values provided
+        :param vcf_template: vcf reader object
+        :return:
+        """
+        vcf_template.infos["gnomad_exomes_AN"] = _Info(
+            "gnomad_exomes_AN",
+            1,
+            "Integer",
+            "GnomAD exomes allele number value",
+            None,
+            None,
+            _encode_type("Integer"),
+        )
+        # if you wish to also include the default headers
+        # super().add_vcf_header_info(vcf_template)
+
+
+api_key = 'Your token'
+vcf_annotator = MyVCFAnnotator(
+    api_key=api_key,
+    ref_genome="hg38",
+    get_parameters={
+        "add-source-databases": "gnomad-exomes,refseq-transcripts",
+        "expand-pubmed-articles": 0,
+        "annotation-mode": "somatic",
+        "cancer-type": "Prostate Adenocarcinoma",
+        "tissue-type": "Prostate",
+    },
+)
+vcf_file = "input.vcf"
+output_vcf_file = "annotated.vcf"
+vcf_annotator.annotate(vcf_file, output_vcf_file)
+```
+
+```python
+from varsome_api.vcf import VCFAnnotator
+from vcf.parser import _Info, _encode_type
+
+
+class MyVCFAnnotator(VCFAnnotator):
+    def annotate_record(self, record, variant_result, original_variant):
+        """
+        :param record: vcf record object
+        :param variant_result: AnnotatedVariant object
+        :param original_variant: The variant that was looked up
+        :return: annotated record object
+        """
+        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
+        # if you wish to also include the default annotations
+        # return super().annotate_record(record, variant_result, original_variant)
+        return record
+
+    def add_vcf_header_info(self, vcf_template):
+        """
+        Adds vcf INFO headers for the annotated values provided
+        :param vcf_template: vcf reader object
+        :return:
+        """
+        vcf_template.infos["gnomad_exomes_AN"] = _Info(
+            "gnomad_exomes_AN",
+            1,
+            "Integer",
+            "GnomAD exomes allele number value",
+            None,
+            None,
+            _encode_type("Integer"),
+        )
+        # if you wish to also include the default headers
+        # super().add_vcf_header_info(vcf_template)
+
+
+api_key = 'Your token'
+vcf_annotator = MyVCFAnnotator(
+    api_key=api_key,
+    ref_genome="hg19",
+    get_parameters={
+        "add-source-databases": "gnomad-exomes,refseq-transcripts",
+        "expand-pubmed-articles": 0,
+        "annotation-mode": "germline",
+        "patient-phenotypes": "Progressive Visual Loss",
+        "diseases": "Neuronal Ceroid Lipofuscinosis 4A",
+    },
+)
+vcf_file = "input.vcf"
+output_vcf_file = "annotated.vcf"
 vcf_annotator.annotate(vcf_file, output_vcf_file)
 ```
 
