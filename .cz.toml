@@ -1,0 +1,13 @@
+
+[tool.commitizen]
+name = "cz_github_jira_conventional"
+tag_format = "v$major.$minor.$patch$prerelease"
+version = "0.0.2"
+version_files = [
+    "version.py"
+]
+jira_base_url = "https://saphetor.atlassian.net"
+github_repo = "saphetor/varsome-api-client-python"
+update_changelog_on_bump = true
+gpg_sign = true
+annotated_tag = true
