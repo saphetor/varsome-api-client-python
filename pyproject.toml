@@ -1,0 +1,14 @@
+[tool.black]
+line-length = 88
+target-version = ['py310']
+
+[tool.isort]
+profile = "black"
+
+[tool.flake8]
+ignore = ['E231', 'E241']
+max-line-length = 88
+count = true
+
+[tool.pylint.format]
+max-line-length = "88"
