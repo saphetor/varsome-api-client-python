@@ -59,11 +59,36 @@ the client within your code instead.
 The command above will read variants from `variants.txt` and dump the annotations to `annotations.txt`. 
 For any number of variants you will need to [register](mailto:support@saphetor.com) for an API key. 
 
+### Example to query CNVs
+
+    varsome_api_run.py -g hg19 -k api-key -q 'cnv/chr2:83300000:106000000:dup' -p add-all-data=1
+
+The query parameter specifies the CNV's details such as chromosome, start and end positions, and CNV type (deletion or duplication). In this example we have chr2, 83300000 and 106000000 and dup accordingly (for deletion use del).
+
+### Example to query Genes
+
+    varsome_api_run.py -g hg19 -k api-key -q 'gene/EGFR' -p add-all-data=1
+
+The single gene lookup endpoint allows users to retrieve gene data associated with a specific gene symbol, specifying optional parameters such as reference genome and source databases.
+
+## Example to query Transcripts 
+
+Try the following query to retrieve transcript-related data:
+
+    varsome_api_run.py -g hg19 -k api-key -q 'transcript/NM_001276760' -p add-all-data=1
+
+### Example to query Single Reads
+
+Try the following to retrieve data relevant to a single read:
+
+    varsome_api_run.py -g hg19 -k api-key -q 'single-read/AGTCCRAGTTGTAAATGGTACACTCGGCGTAAGCCTGAAAAGATAAAATCAAAGATGTAAAGGTGAGCACAGTCTAAGTTCTCTCTGAAGTGTCAATGGGAATGCAGATTGGATTAAATAAATGCTGCCCAAGTGCATACTCAAAGAGGC' -p add-all-data=1
+
 #### Annotating a VCF file
 
 To annotate a VCF file, use: 
 
     varsome_api_annotate_vcf.py -g hg19 -k api_key -i input.vcf -o annotated_vcf.vcf -p add-all-data=1
+
 
 Notice, however, that not all available annotations will be present in the `annotated_vcf.vcf` file. Only a subset
 of the returned annotations will be available when running this script. See the "Using the client in your code" 
