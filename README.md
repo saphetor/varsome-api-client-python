@@ -14,7 +14,7 @@ It contains a substantial, but partial, data-set. Additionally it is throttled a
 
 ### Python versions
 
-Requires at least Python 3.3, you can download the latest version from [www.python.org](http://www.python.org)
+Supports Python 3.3 to 3.10, you can download the latest version from [www.python.org](http://www.python.org)
 
 ### Installation
 
