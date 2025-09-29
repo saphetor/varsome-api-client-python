@@ -44,5 +44,5 @@ setup(
         "Topic :: Scientific/Engineering :: Bio-Informatics",
     ],
     install_requires=installation_requirements,
-    python_requires=">=3.3",
+    python_requires=">=3.3,<3.11",
 )
