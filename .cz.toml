@@ -1,7 +1,7 @@
 [tool.commitizen]
 name = "cz_github_jira_conventional"
 tag_format = "v$major.$minor.$patch$prerelease"
-version = "0.0.3"
+version = "1.0.0b0"
 version_files = [
     "varsome_api/__init__.py:__version__",
 ]
