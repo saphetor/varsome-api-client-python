@@ -1,0 +1,72 @@
+name: Build and publish multi-arch image to GHCR on release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Docker image tag for manual build (e.g. 1.2.3 or latest)'
+        required: true
+        default: 'latest'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  build-and-push:
+    name: Build and push Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Resolve image tag
+        id: vars
+        run: |
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            echo "tag=${{ github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=${{ inputs.tag }}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up QEMU (for multi-arch)
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            # Semver tags (patch, minor, major) — only when tag looks like a version
+            type=semver,pattern={{version}},value=${{ steps.vars.outputs.tag }},enable=${{ startsWith(steps.vars.outputs.tag, 'v') || contains(steps.vars.outputs.tag, '.') }}
+            type=semver,pattern={{major}}.{{minor}},value=${{ steps.vars.outputs.tag }},enable=${{ startsWith(steps.vars.outputs.tag, 'v') || contains(steps.vars.outputs.tag, '.') }}
+            type=semver,pattern={{major}},value=${{ steps.vars.outputs.tag }},enable=${{ startsWith(steps.vars.outputs.tag, 'v') || contains(steps.vars.outputs.tag, '.') }}
+            # Always tag with the exact resolved value (e.g. v1.2.3 or 'latest')
+            type=raw,value=${{ steps.vars.outputs.tag }}
+
+      - name: Build and push (multi-arch)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          platforms: linux/amd64,linux/arm64
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}

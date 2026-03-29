@@ -1,0 +1,6 @@
+# varsome_api from the local clone (no [vcf] extra — no pysam / C build deps)
+# Run from examples/parquet/ so the relative path resolves correctly.
+../../
+
+# Columnar storage
+pyarrow

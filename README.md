@@ -1,457 +1,270 @@
 # VarSome API Client
 
-## A basic API client implementation for [api.varsome.com](https://api.varsome.com)
+A Python client for the [VarSome API](https://api.varsome.com) — annotate genetic variants
+against gnomAD, ClinVar, and many other databases via a simple
+command-line interface or a Python library.
 
-This tool contains examples for the Varsome API usage. It can be used against the production server ([api.varsome.com](https://api.varsome.com)), the staging server ([staging-api.varsome.com](https://staging-api.varsome.com)) or the stable api server ([stable-api.varsome.com](https://stable-api.varsome.com))
+---
 
-### Staging-api environment
+## ⚠️ Legacy version notice
 
-The staging-api.varsome.com environment is a free usage test environment for subscribers. It is the perfect environment for evaluating the performance of the API. It is updated on an adhoc basis at our discretion, either together with live or possibly ahead of live in order to test upcoming new features. 
+This is a **new major version** (`1.x`) that requires **Python ≥ 3.11**.
 
-It contains a substantial, but partial, data-set. Additionally it is throttled and is limited in the types of queries you can run. For example, it allows for only a limited number of samples and a limited size of data.
+If you need compatibility with Python 3.10 or earlier, use the previous release:
 
-**Please note: For this reason API queries performed against the staging environment within the client may not always run correctly or may produce different results to the production environment.**
+> **[v0.0.3 — Python ≤ 3.10 compatible](https://github.com/saphetor/varsome-api-client-python/tree/v0.0.3)**
 
-### Python versions
+---
 
-Requires at least Python 3.3, you can download the latest version from [www.python.org](http://www.python.org)
+## What this library provides
 
-### Installation
+- **`varsome_api_run`** — look up one or more variants and receive the full JSON
+  annotation response.
+- **`varsome_api_annotate_vcf`** — read a VCF file, annotate every variant via the
+  VarSome API, and write an annotated output VCF.
+- **`VarSomeAPIClient`** — a Python class for integrating variant annotation
+  directly into your own code (synchronous and async interfaces).
+- **`VCFAnnotator`** — a customisable VCF annotation pipeline class for use in
+  your own Python projects.
 
-We suggest that you create a python virtual environment instead of globally installing the library.
+---
 
-There are several ways to create a virtual environment, but you can refer to [pip installation](https://pip.pypa.io/en/stable/installation/) and
-[virtualenv installation](https://virtualenv.pypa.io/en/latest/installation.html) to first install these 2 tools if you don't
-have them already installed via a package manager (Linux) or HomeBrew (MacOS), etc. 
-Remember to use "sudo -H" when installing on Mac.
+## Installation
 
-To create a virtual environment, you can follow the [user guide](https://virtualenv.pypa.io/en/latest/user_guide.html) or simply run:
+### End users — CLI tools
 
-    virtualenv -p path_to/python3 venv_dir_name
+If you only want to run `varsome_api_run` or `varsome_api_annotate_vcf`,
+**the Docker image is the recommended approach** — it ships with all system
+dependencies pre-installed and requires no local build toolchain:
 
-Activate the virtual environment:
-
-    source venv_dir_name/bin/activate
-
-Finally, to use the client, either download or clone the repository from github and place the `varsome_api` 
-folder inside your project's directory, or run:
-
-    pip install https://github.com/saphetor/varsome-api-client-python/archive/master.zip
-
-The client will be installed within your virtual environment. Also, 2 scripts called `varsome_api_run.py` and 
-`varsome_api_annotate_vcf.py` will be available within your virtual environment's `$PATH`.
-
-### Using the scripts to directly annotate a list of variants or a VCF file
-
-#### Annotating a variant or list of variants
-
-Try the following query to annotate a single variant:
-
-    varsome_api_run.py -g hg19 -k api_key -q 'chr7-140453136-A-T' -p add-all-data=1
-
-The script should complete without errors and display aproximately 6,700 lines of data from `dann`, `dbnsfp`, `ensembl_transcripts`, `gerp`, `gnomad_exomes`, `gnomad_exomes_coverage`, `icgc_somatic`, `ncbi_clinvar2`, `pub_med_articles`, `refseq_transcripts`, `sanger_cosmic_public`, `uniprot_variants`, `wustl_civic` etc.
-The script can also accept a text file with variants (one per line) and an optional output file to store the
-annotations in. We suggest that you don't use this script for a large number of variants, but use
-the client within your code instead.
-
-    varsome_api_run.py -g hg19 -k api_key -i variants.txt -o annotations.txt -p add-all-data=1
-
-The command above will read variants from `variants.txt` and dump the annotations to `annotations.txt`. 
-For any number of variants you will need to [register](mailto:support@saphetor.com) for an API key. 
-
-### Example to query CNVs
-
-    varsome_api_run.py -g hg19 -k api-key -q 'cnv/chr2:83300000:106000000:dup' -p add-all-data=1
-
-The query parameter specifies the CNV's details such as chromosome, start and end positions, and CNV type (deletion or duplication). In this example we have chr2, 83300000 and 106000000 and dup accordingly (for deletion use del).
-
-### Example to query Genes
-
-    varsome_api_run.py -g hg19 -k api-key -q 'gene/EGFR' -p add-all-data=1
-
-The single gene lookup endpoint allows users to retrieve gene data associated with a specific gene symbol, specifying optional parameters such as reference genome and source databases.
-
-## Example to query Transcripts 
-
-Try the following query to retrieve transcript-related data:
-
-    varsome_api_run.py -g hg19 -k api-key -q 'transcript/NM_001276760' -p add-all-data=1
-
-### Example to query Single Reads
-
-Try the following to retrieve data relevant to a single read:
-
-    varsome_api_run.py -g hg19 -k api-key -q 'single-read/AGTCCRAGTTGTAAATGGTACACTCGGCGTAAGCCTGAAAAGATAAAATCAAAGATGTAAAGGTGAGCACAGTCTAAGTTCTCTCTGAAGTGTCAATGGGAATGCAGATTGGATTAAATAAATGCTGCCCAAGTGCATACTCAAAGAGGC' -p add-all-data=1
-
-#### Annotating a VCF file
-
-To annotate a VCF file, use: 
-
-    varsome_api_annotate_vcf.py -g hg19 -k api_key -i input.vcf -o annotated_vcf.vcf -p add-all-data=1
-
-
-Notice, however, that not all available annotations will be present in the `annotated_vcf.vcf` file. Only a subset
-of the returned annotations will be available when running this script. See the "Using the client in your code" 
-section below for how to annotate a VCF file with the annotations that are of interest to you. 
-
-*Warning*: varsome_api_annotate_vcf.py can only deal with:
-
-- SNPs
-- small indels (up to 200bp)
-
-If you want to use this script please remove any variant from your VCF that does not meet the above criteria.
-
-### Using the client in your code
-
-Using the API client is quite straightforward. Just install the API client package and use the following in your code:
-
-```python
-from varsome_api.client import VarSomeAPIClient
-# API key is not required for single variant lookups
-api_key = 'Your token'
-api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
-# fetch information about a variant into a dictionary
-result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
-# access results e.g. the transcripts of the variant
-transcripts = result['refseq_transcripts']
-# fetch information for multiple variants
-variants = ['chr19:20082943:1:G','chr22:39777823::CAA']
-# Results will be an array of dictionaries. An API key will be required for this request
-results = api.batch_lookup(variants, params={'add-source-databases': 'gnomad-exomes,gnomad-genomes'}, ref_genome='hg19')
-# look at the python doc for batch_lookup method for additional parameters
+```bash
+docker pull ghcr.io/saphetor/varsome-api-client-python:1
 ```
 
-If errors occur while using the client, an exception will be thrown.
-You may wish to catch this exception and proceed with your own code logic:
+See the [Docker Guide](docs/docker.md) for full usage instructions.
 
-```python
-from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
-api_key = 'Your token'
-api = VarSomeAPIClient(api_key)
-try:
-   result = api.lookup('chr19:20082943:1:G', ref_genome='hg64')
-except VarSomeAPIException as e:
-    # proceed with your code flow e.g.
-    print(e) # 404 (invalid reference genome)
+---
+
+### Python install — core library (no VCF support)
+
+If you only need `VarSomeAPIClient` for variant lookup in your own code and
+**do not** require VCF reading/writing, install without extras:
+
+```bash
+pip install git+https://github.com/saphetor/varsome-api-client-python.git
 ```
 
-To view available request parameters (used by the `params` method parameter), refer to an example at [api.varsome.com](https://api.varsome.com).
+Or with [Poetry](https://python-poetry.org/):
 
-To understand how annotation properties are included in the JSON response, please refer to the relevant [schema](https://api.varsome.com/docs/variants/).
-
-#### JSON response wrapper
-
-If you don't want to read through each attribute in the JSON response, you can wrap the result into a Python
-[JSON model](http://jsonmodels.readthedocs.io/en/latest/readme.html):
-
-```python
-from varsome_api.client import VarSomeAPIClient
-from varsome_api.models.variant import AnnotatedVariant
-# API key is not required for single variant lookups
-api_key = 'Your token'
-api = VarSomeAPIClient(api_key)
-# fetch information about a variant into a dictionary
-result = api.lookup('chr7-140453136-A-T', params={'add-source-databases': 'gnomad-exomes,refseq-transcripts'}, ref_genome='hg19')
-annotated_variant = AnnotatedVariant(**result)
+```bash
+poetry add git+https://github.com/saphetor/varsome-api-client-python.git
 ```
 
-You now have access to a set of shortcut attributes (these will be updated over time in the code base):
+---
 
-```python
-annotated_variant.chromosome
-annotated_variant.alt
-annotated_variant.genes # directly get the genes related to the variant
-annotated_variant.gnomad_exomes_af # etc
+### Python install — with VCF support (`[vcf]` extra)
+
+`varsome_api_annotate_vcf` and `VCFAnnotator` depend on
+[pysam](https://pysam.readthedocs.io/), which requires several C build
+libraries. Install the `vcf` extra to include pysam:
+
+```bash
+pip install "varsome_api[vcf] @ git+https://github.com/saphetor/varsome-api-client-python.git"
 ```
 
-Or you may access other inner properties of other available properties:
+Or with Poetry:
 
-```python
-# get gnomad exomes allele number
-allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes]
+```bash
+poetry add "git+https://github.com/saphetor/varsome-api-client-python.git[vcf]"
 ```
 
-JSON model-type objects that contain a `version` property, like `annotated_variant.gnomad_exomes`, are
-always returned as lists of objects. This is because the API has the ability to return multiple versions of 
-annotation databases (although this is not currently publicly available). For consistency, therefore,
-these are always lists, though it is safe to assume that they will only include a single item. So it is safe
-to rewrite as:
+> **Build requirements for pysam** — the following system libraries must be
+> present before `pip` can compile pysam:
+>
+> | Library | Ubuntu/Debian | macOS (Homebrew) |
+> |---------|---------------|-----------------|
+> | zlib | `zlib1g-dev` | `zlib` |
+> | bzip2 | `libbz2-dev` | `bzip2` |
+> | lzma | `liblzma-dev` | `xz` |
+> | libcurl | `libcurl4-openssl-dev` | `curl` |
+> | OpenSSL | `libssl-dev` | `openssl` |
+> | libdeflate | `libdeflate-dev` | `libdeflate` |
+> | build tools | `build-essential` | Xcode CLT |
+>
+> If installing these is inconvenient, **use the Docker image instead** —
+> it handles all of this for you.
 
-```python
-try:
-    allele_number = [gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes][0]
-except IndexError:
-    pass # no gnomad exomes annotation for the variant
+After installation, the `varsome_api_run` and `varsome_api_annotate_vcf` commands
+will be available in your `PATH`.
+
+Requires **Python ≥ 3.11, < 3.15**.
+
+---
+
+## API servers
+
+| Server  | URL | Notes                                        |
+|---------|-----|----------------------------------------------|
+| Live    | `https://api.varsome.com` | Default                                      |
+| Stable  | `https://stable-api.varsome.com` | Kept frozen according to schedule            |
+| Staging | `https://staging-api.varsome.com` | Test environment, throttled |
+
+For more information on the different servers, [read here](https://docs.varsome.com/en/varsome-api-environments).
+
+Use the `-u` flag to select a non-default server.
+
+> **Note:** The staging environment is intended for evaluation only. It may contain a
+> partial dataset, is throttled, and may produce different results from production.
+
+---
+
+## Quick-start: command-line tools
+
+### Annotate a single variant
+
+```bash
+varsome_api_run -g hg19 -k YOUR_API_KEY -q 'chr7-140453136-A-T' -p add-all-data=1
 ```
 
-#### Complete examples to try yourself
+### Annotate multiple variants in one call
 
-Below there are examples utilizing cancer, tissue type and phenotypes, diseases options.
-
-```python
-from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
-from varsome_api.models.variant import AnnotatedVariant
-
-
-api_key = 'Your token'
-api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
-
-try:
-    result = api.lookup(
-        "chr22-29091857-G-",
-        params={
-            "add-source-databases": "gnomad-exomes,refseq-transcripts",
-            "annotation-mode": "somatic",
-            "cancer-type": "Prostate Adenocarcinoma",
-            "tissue-type": "Prostate",
-        },
-        ref_genome="hg19",
-    )
-except VarSomeAPIException as e:
-    print(e)
-
-annotated_variant = AnnotatedVariant(**result)
-print(
-    annotated_variant.chromosome,
-    annotated_variant.genes,
-    annotated_variant.gnomad_exomes_af,
-)
-try:
-    allele_number = [
-        gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes
-    ]
-except IndexError:
-    pass
-print(allele_number)
+```bash
+varsome_api_run -g hg19 -k YOUR_API_KEY \
+  -q 'chr7-140453136-A-T' 'chr19:20082943:1:G' \
+  -p add-source-databases=gnomad-exomes,refseq-transcripts
 ```
 
-```python
-from varsome_api.client import VarSomeAPIClient, VarSomeAPIException
-from varsome_api.models.variant import AnnotatedVariant
+### Annotate variants from a text file (one variant per line)
 
-api_key = 'Your token'
-api = VarSomeAPIClient(api_key, api_url="https://stable-api.varsome.com")
-
-try:
-    result = api.lookup(
-        "15:68500735:C:T",
-        params={
-            "add-source-databases": "gnomad-exomes,refseq-transcripts",
-            "annotation-mode": "germline",
-            "patient-phenotypes": "Progressive Visual Loss",
-            "diseases": "Neuronal Ceroid Lipofuscinosis 4A",
-        },
-        ref_genome="hg19",
-    )
-except VarSomeAPIException as e:
-    print(e)
-
-annotated_variant = AnnotatedVariant(**result)
-print(
-    annotated_variant.chromosome,
-    annotated_variant.alt,
-    annotated_variant.genes,
-    annotated_variant.gnomad_exomes_af,
-)
-try:
-    allele_number = [
-        gnomad_exome.an for gnomad_exome in annotated_variant.gnomad_exomes
-    ]
-except IndexError:
-    pass
-print(allele_number)
+```bash
+varsome_api_run -g hg19 -k YOUR_API_KEY -i variants.txt -o annotations.json -p add-all-data=1
 ```
 
-#### Annotating a VCF using the client
+Output defaults to stdout. Use `-o` to write to a file.
+The output is always written in [JSON Lines](https://jsonlines.org) format —
+one JSON object per line — regardless of whether you write to a file or stdout.
+See [Output format: JSON Lines](#output-format-json-lines-breaking-change-from-v0x)
+for details and migration guidance.
 
-To annotate a VCF you can base your code on the VCFAnnotator object. This provides a basic implementation that
-will annotate a VCF file using a set of the available annotations. It uses [PyVCF](https://pyvcf.readthedocs.io/en/latest/) to read and write to VCF files.
+### Annotate a VCF file
 
-```python
-from varsome_api.vcf import VCFAnnotator
-api_key = 'Your token'
-vcf_annotator = VCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
-vcf_file = 'input.vcf'
-output_vcf_file = 'annotated.vcf'
-vcf_annotator.annotate(vcf_file, output_vcf_file)
+```bash
+varsome_api_annotate_vcf -g hg19 -k YOUR_API_KEY -i input.vcf -o annotated.vcf -p add-all-data=1
 ```
 
-To annotate the VCF file with the annotations that you are interested in, you need only override 2 methods
-(`annotate_record` and `add_vcf_header_info`) in the VCFAnnotator class:
+> **VCF annotation limitation:** `varsome_api_annotate_vcf` supports SNPs and small
+> indels (up to 200 bp). Remove any variants outside these criteria before running.
 
-```python
-from varsome_api.vcf import VCFAnnotator
-from vcf.parser import _Info, _encode_type
-class MyVCFAnnotator(VCFAnnotator):
+### Common CLI flags
 
+| Flag | Description | Default |
+|------|-------------|---------|
+| `-k` | API key (required) | — |
+| `-g` | Reference genome: `hg19` or `hg38` | `hg19` |
+| `-p` | Request parameters as `key=value` pairs | `add-ACMG-annotation=1` |
+| `-u` | API server URL | `https://api.varsome.com` |
+| `-t` | Max concurrent requests (1–20) | `5` |
+| `-m` | Max variants per batch request (1–200) | `100` |
+| `-v` / `--verbose` | Enable debug-level logging | off |
 
-    def annotate_record(self, record, variant_result, original_variant):
-        """
-        :param record: vcf record object
-        :param variant_result: AnnotatedVariant object
-        :param original_variant: The variant that was looked up
-        :return: annotated record object
-        """
-        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
-        # if you wish to also include the default annotations
-        # return super().annotate_record(record, variant_result, original_variant)
-        return record
+Run any tool with `--help` for the full option reference.
 
-    def add_vcf_header_info(self, vcf_template):
-        """
-        Adds vcf INFO headers for the annotated values provided
-        :param vcf_template: vcf reader object
-        :return:
-        """
-        vcf_template.infos["gnomad_exomes_AN"] = _Info(
-            "gnomad_exomes_AN",
-            1,
-            "Integer",
-            "GnomAD exomes allele number value",
-            None,
-            None,
-            _encode_type("Integer"),
-        )
-        # if you wish to also include the default headers
-        # super().add_vcf_header_info(vcf_template)
+---
 
-api_key = 'Your token'
-vcf_annotator = MyVCFAnnotator(api_key=api_key, ref_genome='hg19', get_parameters={'add-all-data': 1, 'expand-pubmed-articles': 0})
-vcf_file = 'input.vcf'
-output_vcf_file = 'annotated.vcf'
-vcf_annotator.annotate(vcf_file, output_vcf_file)
+## Output format: JSON Lines (breaking change from v0.x)
+
+`varsome_api_run` v1.x writes all output — to a file or to stdout — in
+**[JSON Lines](https://jsonlines.org)** (JSONL) format: one self-contained JSON
+object per line, with no surrounding array wrapper.
+
+This is a **breaking change** from v0.x, which wrote the output file as a single
+JSON array.
+
+### v0.x — old format (JSON array)
+
+The old output file looked like this:
+
+```json
+[
+  {"chromosome": "7", "pos": 140453136, "ref": "A", "alt": "T", ...},
+  {"chromosome": "19", "pos": 20082943, "ref": "1", "alt": "G", ...}
+]
 ```
 
-#### Complete examples to try yourself
-
-Below there are examples utilizing cancer, tissue type and phenotypes, diseases options. 
-Keep in mind that these options are subjective to your vcf file.
+Users would load the entire file at once and iterate the resulting list:
 
 ```python
-from varsome_api.vcf import VCFAnnotator
-from vcf.parser import _Info, _encode_type
+# v0.x — old approach
+import json
 
+with open("annotations.json") as f:
+    annotations = json.load(f)  # parses the whole file as a JSON array
 
-class MyVCFAnnotator(VCFAnnotator):
-    def annotate_record(self, record, variant_result, original_variant):
-        """
-        :param record: vcf record object
-        :param variant_result: AnnotatedVariant object
-        :param original_variant: The variant that was looked up
-        :return: annotated record object
-        """
-        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
-        # if you wish to also include the default annotations
-        # return super().annotate_record(record, variant_result, original_variant)
-        return record
-
-    def add_vcf_header_info(self, vcf_template):
-        """
-        Adds vcf INFO headers for the annotated values provided
-        :param vcf_template: vcf reader object
-        :return:
-        """
-        vcf_template.infos["gnomad_exomes_AN"] = _Info(
-            "gnomad_exomes_AN",
-            1,
-            "Integer",
-            "GnomAD exomes allele number value",
-            None,
-            None,
-            _encode_type("Integer"),
-        )
-        # if you wish to also include the default headers
-        # super().add_vcf_header_info(vcf_template)
-
-
-api_key = 'Your token'
-vcf_annotator = MyVCFAnnotator(
-    api_key=api_key,
-    ref_genome="hg38",
-    get_parameters={
-        "add-source-databases": "gnomad-exomes,refseq-transcripts",
-        "expand-pubmed-articles": 0,
-        "annotation-mode": "somatic",
-        "cancer-type": "Prostate Adenocarcinoma",
-        "tissue-type": "Prostate",
-    },
-)
-vcf_file = "input.vcf"
-output_vcf_file = "annotated.vcf"
-vcf_annotator.annotate(vcf_file, output_vcf_file)
+for annotation in annotations:
+    print(annotation["chromosome"], annotation["pos"])
 ```
+
+### v1.x — new format (JSON Lines)
+
+The new output file looks like this:
+
+```jsonl
+{"alt": "T", "chromosome": "7", "pos": 140453136, "ref": "A", ...}
+{"alt": "G", "chromosome": "19", "pos": 20082943, "ref": "1", ...}
+```
+
+Each line is an independent, complete JSON object. Read the file **line by line**
+and parse each line separately:
 
 ```python
-from varsome_api.vcf import VCFAnnotator
-from vcf.parser import _Info, _encode_type
+# v1.x — new approach
+import json
 
-
-class MyVCFAnnotator(VCFAnnotator):
-    def annotate_record(self, record, variant_result, original_variant):
-        """
-        :param record: vcf record object
-        :param variant_result: AnnotatedVariant object
-        :param original_variant: The variant that was looked up
-        :return: annotated record object
-        """
-        record.INFO["gnomad_exomes_AN"] = variant_result.gnomad_exomes_an
-        # if you wish to also include the default annotations
-        # return super().annotate_record(record, variant_result, original_variant)
-        return record
-
-    def add_vcf_header_info(self, vcf_template):
-        """
-        Adds vcf INFO headers for the annotated values provided
-        :param vcf_template: vcf reader object
-        :return:
-        """
-        vcf_template.infos["gnomad_exomes_AN"] = _Info(
-            "gnomad_exomes_AN",
-            1,
-            "Integer",
-            "GnomAD exomes allele number value",
-            None,
-            None,
-            _encode_type("Integer"),
-        )
-        # if you wish to also include the default headers
-        # super().add_vcf_header_info(vcf_template)
-
-
-api_key = 'Your token'
-vcf_annotator = MyVCFAnnotator(
-    api_key=api_key,
-    ref_genome="hg19",
-    get_parameters={
-        "add-source-databases": "gnomad-exomes,refseq-transcripts",
-        "expand-pubmed-articles": 0,
-        "annotation-mode": "germline",
-        "patient-phenotypes": "Progressive Visual Loss",
-        "diseases": "Neuronal Ceroid Lipofuscinosis 4A",
-    },
-)
-vcf_file = "input.vcf"
-output_vcf_file = "annotated.vcf"
-vcf_annotator.annotate(vcf_file, output_vcf_file)
+with open("annotations.jsonl") as f:
+    for line in f:
+        annotation = json.loads(line)  # parse one object at a time
+        print(annotation["chromosome"], annotation["pos"])
 ```
 
-### API Documentation
+> ⚠️ **`json.load(f)` will fail** on a JSONL file because the file as a whole is
+> not valid JSON. Always use `json.loads(line)` inside a loop.
 
-See [API documentation](https://api.varsome.com) for information on how to use the API and
-what values the API provides as a response to lookup requests.
+### Why the change?
 
-### How to get an API key
+The JSONL format allows results to be streamed and written **as they arrive** from
+the API, keeping memory usage constant regardless of how many variants are
+annotated. The old array format required buffering all results in memory before
+writing, which was impractical for large variant sets.
 
-To obtain an API key please [contact us](mailto:support@saphetor.com).
+---
 
-### How to run the tests
+## Documentation
 
-Clone the repository, after creating a virtual environment, and run:
+| Document | Description |
+|----------|-------------|
+| [Developer Guide](docs/developer-guide.md) | Using `VarSomeAPIClient` and `VCFAnnotator` in your Python code |
+| [Docker Guide](docs/docker.md) | Running the tools via the pre-built Docker image or building your own |
 
-    pip install tox
-    tox
+---
 
-To run the tests, set the `VARSOME_API_KEY` environment variable to your API token. Otherwise,
-tests will fail because the API will return a 401 (not authenticated) error.
-Be advised as well that running the tests will count towards your account request limit depending on the
-API package you are subscribed to.
+## How to get an API key
+
+[Contact support](mailto:support@saphetor.com) to register for an API key.
+
+An API key is required for all CLI operations and for batch lookups.
+Single-variant lookups via `VarSomeAPIClient` do not require a key, but will be throttled.
+
+---
+
+## API documentation
+
+See [api.varsome.com](https://api.varsome.com) for available request parameters and
+the full response schema. The OpenAPI specification is available at
+`https://api.varsome.com/openapi/variants/`.
+
+---
+
+## Contributing & running the tests
+
+See the [Developer Guide](docs/developer-guide.md) for instructions on cloning
+the repository, setting up a development environment, and running the test suite.
