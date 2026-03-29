@@ -1,8 +1,0 @@
-include LICENSE
-include MANIFEST.in
-include README.md
-include setup.py
-recursive-include variantapi/test *.csv
-recursive-include variantapi/test *.vcf
-recursive-exclude * __pycache__
-recursive-exclude * *.py[co]
