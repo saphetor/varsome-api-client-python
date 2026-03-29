@@ -2,9 +2,9 @@ name: Python Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
-    branches: [ main ]
+    branches: [ master ]
 
 jobs:
   test:
@@ -40,26 +40,34 @@ jobs:
           libssl-dev \
           libdeflate-dev
 
-    - name: Load cached dependencies
-      uses: actions/cache@v4
-      id: cache-dependencies
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
       with:
-        path: ~/.cache/pip
-        key: pip-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/requirements.txt') }}-${{ hashFiles('**/requirements-dev.txt') }}
+        version: latest
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
 
     - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install -r requirements-dev.txt
+      run: poetry install --with dev
 
     - name: Run tests
       run: |
-        pytest -v --junitxml=pytest-report.xml
+        if [ "${{ matrix.python-version }}" = "3.13" ]; then
+          poetry run pytest -v --junitxml=pytest-report.xml --no-cov
+        else
+          poetry run pytest -v --junitxml=pytest-report.xml
+        fi
 
     - name: Publish Test Results
+      # Using EnricoMi/publish-unit-test-result-action@v2
       uses: EnricoMi/publish-unit-test-result-action@v2
       if: always()
       with:
         files: pytest-report.xml
-        check_name: "Python Test Results"
+        check_name: "Python Test Results (${{ matrix.python-version }})"
