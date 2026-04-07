@@ -66,7 +66,7 @@ class BatchResult(_BaseBatchResult):
 
     Attributes:
         records: The ``pysam.VariantRecord`` objects corresponding to each
-            variant, aligned by index with *variants* and *response*.
+            query, aligned by index with *queries* and *response*.
     """
 
     records: list[pysam.VariantRecord]
@@ -145,13 +145,13 @@ class VCFAnnotator(VarSomeAPIClient):
     ) -> tuple[int, list[tuple[str, dict[str, Any]]], list[tuple[str, dict[str, Any]]]]:
         """Process a batch result and write annotated records to the output VCF.
 
-        Iterates over each variant in *batch_result* by index, skips
+        Iterates over each query in *batch_result* by index, skips
         filtered-out or errored responses, deserialises valid responses via
         ``self.variant_model``, and delegates to ``annotate_record`` before
         writing the record.
 
         Args:
-            batch_result: A ``BatchResult`` whose ``variants``, ``records``,
+            batch_result: A ``BatchResult`` whose ``queries``, ``records``,
                 and ``response`` lists are aligned by index.
             writer: An open ``pysam.VariantFile`` in write mode.
 
@@ -163,7 +163,7 @@ class VCFAnnotator(VarSomeAPIClient):
         annotated_count = 0
         filtered_variants: list[tuple[str, dict[str, Any]]] = []
         errored_variants: list[tuple[str, dict[str, Any]]] = []
-        for idx, variant in enumerate(batch_result.variants):
+        for idx, variant in enumerate(batch_result.queries):
             annotated_variant = batch_result.response[idx]
             vcf_record = batch_result.records[idx]
             if "filtered_out" in annotated_variant:
@@ -331,8 +331,9 @@ class VCFAnnotator(VarSomeAPIClient):
         session: aiohttp.ClientSession,
         request_queue: asyncio.Queue,
         result_queue: asyncio.Queue,
-        url,
-        params,
+        url: str,
+        params: dict[str, Any] | None,
+        batch_key: str,
     ) -> None:
         """Consume batches of variants from the request
         queue and send them to the API."""
@@ -348,12 +349,12 @@ class VCFAnnotator(VarSomeAPIClient):
                     path=url,
                     method="POST",
                     params=params,
-                    json={"variants": variant_reprs},
+                    json={batch_key: variant_reprs},
                     headers={"Content-Type": "application/json"},
                 )
                 await result_queue.put(
                     BatchResult(
-                        variants=variant_reprs, records=records, response=response
+                        queries=variant_reprs, records=records, response=response
                     )
                 )
             except VarSomeAPIException as e:

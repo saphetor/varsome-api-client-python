@@ -173,7 +173,7 @@ class TestProcessRequest:
         mock_record.info = {}
 
         batch_result = VcfBatchResult(
-            variants=["1:100:A:T"],
+            queries=["1:100:A:T"],
             records=[mock_record],
             response=[
                 {
@@ -197,7 +197,7 @@ class TestProcessRequest:
         mock_writer = MagicMock()
 
         batch_result = VcfBatchResult(
-            variants=["1:100:A:T"],
+            queries=["1:100:A:T"],
             records=[MagicMock(spec=pysam.VariantRecord)],
             response=[{"filtered_out": "Frequency less than 0.01"}],
         )
@@ -213,7 +213,7 @@ class TestProcessRequest:
         mock_writer = MagicMock()
 
         batch_result = VcfBatchResult(
-            variants=["1:100:A:T"],
+            queries=["1:100:A:T"],
             records=[MagicMock(spec=pysam.VariantRecord)],
             response=[{"error": "Invalid variant"}],
         )
@@ -233,7 +233,7 @@ class TestProcessRequest:
         mock_record.info = {}
 
         batch_result = VcfBatchResult(
-            variants=["1:100:A:T", "1:200:G:C", "1:300:A:G"],
+            queries=["1:100:A:T", "1:200:G:C", "1:300:A:G"],
             records=[
                 mock_record,
                 MagicMock(spec=pysam.VariantRecord),
@@ -314,7 +314,7 @@ class TestAnnotateVariantsAndWriteToVcf:
         output = str(tmp_path / "output.vcf")
         header = VCFAnnotator._read_header_from_vcf(VARIANTS_VCF)
 
-        mock_batch_result = VcfBatchResult(variants=[], records=[], response=[])
+        mock_batch_result = VcfBatchResult(queries=[], records=[], response=[])
 
         with patch.object(
             annotator,
@@ -407,7 +407,7 @@ class TestAannotate:
         )
         output = str(tmp_path / "annotated.vcf")
 
-        mock_batch_result = VcfBatchResult(variants=[], records=[], response=[])
+        mock_batch_result = VcfBatchResult(queries=[], records=[], response=[])
 
         with patch.object(
             annotator,
@@ -520,7 +520,7 @@ class TestVariantModel:
         mock_record.info = {}
 
         batch_result = VcfBatchResult(
-            variants=["1:100:A:T"],
+            queries=["1:100:A:T"],
             records=[mock_record],
             response=[
                 {

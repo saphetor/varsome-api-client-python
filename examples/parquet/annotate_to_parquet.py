@@ -96,7 +96,7 @@ def annotate_and_write(
         )
 
         for batch in batch_results:
-            for i, variant_str in enumerate(batch.variants):
+            for i, variant_str in enumerate(batch.queries):
                 raw: dict = batch.response[i]
 
                 if "error" in raw:

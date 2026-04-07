@@ -1,5 +1,3 @@
-"""Shared CLI utility helpers used across VarSome API command-line tools."""
-
 import argparse
 import json
 import logging
@@ -12,7 +10,6 @@ from varsome_api.constants import REFERENCE_GENOMES
 from varsome_api.log import logger
 
 MAX_CONCURRENT_REQUESTS = 20
-MAX_VARIANTS_PER_BATCH = 200
 DEFAULT_REQUESTS = 5
 DEFAULT_VARIANTS_PER_BATCH = 100
 VARSOME_API_URL_CHOICES = [
@@ -33,7 +30,7 @@ def build_base_parser(description: str) -> argparse.ArgumentParser:
     * ``-p`` — request parameters (``key=value`` pairs)
     * ``-u`` — custom API host URL
     * ``-t`` — max concurrent API requests (default ``5``)
-    * ``-m`` — max variants per batch request (default ``100``)
+    * ``-m`` — max items per batch request (default ``100``)
     * ``-v`` / ``--verbose`` — enable debug logging
 
     Callers should extend the returned parser with command-specific arguments
@@ -96,11 +93,11 @@ def build_base_parser(description: str) -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "-m",
-        help="Maximum number of variants to send per batch request",
+        help="Maximum number of items to send per batch request",
         type=int,
         default=DEFAULT_VARIANTS_PER_BATCH,
         required=False,
-        metavar="Max variants per batch",
+        metavar="Max items per batch",
     )
     parser.add_argument(
         "-v",
@@ -139,12 +136,11 @@ def validate_file_args(
 
 
 def validate_batch_args(args: argparse.Namespace) -> None:
-    """Validate and clamp the ``-t`` and ``-m`` batch arguments in-place.
+    """Validate and clamp the ``-t`` batch argument in-place.
 
     Ensures ``-t`` (max concurrent requests) is between 1 and
-    :data:`MAX_CONCURRENT_REQUESTS` and ``-m`` (max variants per batch)
-    does not exceed :data:`MAX_VARIANTS_PER_BATCH`.  Values outside the
-    allowed range are clamped with a logged warning.
+    :data:`MAX_CONCURRENT_REQUESTS`.  Values outside the allowed range
+    are clamped with a logged warning.
 
     Args:
         args: Parsed CLI arguments (modified in-place).
@@ -160,14 +156,6 @@ def validate_batch_args(args: argparse.Namespace) -> None:
             MAX_CONCURRENT_REQUESTS,
         )
         args.t = MAX_CONCURRENT_REQUESTS
-    if args.m > MAX_VARIANTS_PER_BATCH:
-        logger.warning(
-            "Maximum number of variants per request is capped at %d. "
-            "Setting it to %d.",
-            MAX_VARIANTS_PER_BATCH,
-            MAX_VARIANTS_PER_BATCH,
-        )
-        args.m = MAX_VARIANTS_PER_BATCH
 
 
 def configure_logging(*, verbose: bool = False) -> None:

@@ -19,7 +19,7 @@ from varsome_api.cli.varsome_api_annotate_vcf import (
     validate_args as validate_annotate_args,
 )
 from varsome_api.cli.varsome_api_run import (
-    _iter_variants_from_file,
+    _iter_queries_from_file,
     build_parser,
     lookup_from_file,
     lookup_query,
@@ -219,13 +219,13 @@ async def _async_gen_from_list(items: list[Any]) -> Any:
 
 
 class TestIterVariantsFromFile:
-    """Verify ``_iter_variants_from_file`` streams lines correctly."""
+    """Verify ``_iter_queries_from_file`` streams lines correctly."""
 
     async def test_yields_all_non_empty_lines(self, tmp_path: Any) -> None:
         f = tmp_path / "variants.txt"
         f.write_text("v1\nv2\nv3\n")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert result == ["v1", "v2", "v3"]
 
@@ -233,7 +233,7 @@ class TestIterVariantsFromFile:
         f = tmp_path / "variants.txt"
         f.write_text("v1\n\nv2\n\n\nv3\n")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert result == ["v1", "v2", "v3"]
 
@@ -241,7 +241,7 @@ class TestIterVariantsFromFile:
         f = tmp_path / "variants.txt"
         f.write_text("  v1  \n\tv2\t\n v3\n")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert result == ["v1", "v2", "v3"]
 
@@ -249,7 +249,7 @@ class TestIterVariantsFromFile:
         f = tmp_path / "blank.txt"
         f.write_text("\n\n   \n")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert not result
 
@@ -257,7 +257,7 @@ class TestIterVariantsFromFile:
         f = tmp_path / "empty.txt"
         f.write_text("")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert not result
 
@@ -266,7 +266,7 @@ class TestIterVariantsFromFile:
         f = tmp_path / "ordered.txt"
         f.write_text("\n".join(variants) + "\n")
 
-        result = [v async for v in _iter_variants_from_file(str(f))]
+        result = [v async for v in _iter_queries_from_file(str(f))]
 
         assert result == variants
 
@@ -280,7 +280,7 @@ class TestLookupQuery:
             return_value=_async_gen_from_list(
                 [
                     BatchResult(
-                        variants=["chr1:100:A:T"],
+                        queries=["chr1:100:A:T"],
                         response=[{"variant_id": "123"}],
                     )
                 ]
@@ -290,6 +290,7 @@ class TestLookupQuery:
         result = lookup_query(
             api,
             ["chr1:100:A:T"],
+            query_type="variants",
             request_parameters=None,
             ref_genome="hg19",
             max_requests=5,
@@ -298,7 +299,11 @@ class TestLookupQuery:
         result_list = [item async for item in result]
 
         api.abatch_lookup.assert_called_once_with(
-            ["chr1:100:A:T"], params=None, ref_genome="hg19", max_requests=5
+            ["chr1:100:A:T"],
+            params=None,
+            ref_genome="hg19",
+            max_requests=5,
+            query_type="variants",
         )
         assert result_list == [{"variant_id": "123"}]
 
@@ -308,7 +313,7 @@ class TestLookupQuery:
             return_value=_async_gen_from_list(
                 [
                     BatchResult(
-                        variants=["v1", "v2"],
+                        queries=["v1", "v2"],
                         response=[{"id": "1"}, {"id": "2"}],
                     )
                 ]
@@ -318,6 +323,7 @@ class TestLookupQuery:
         result = lookup_query(
             api,
             ["v1", "v2"],
+            query_type="variants",
             request_parameters=None,
             ref_genome="hg38",
             max_requests=5,
@@ -325,7 +331,11 @@ class TestLookupQuery:
 
         result_list = [item async for item in result]
         api.abatch_lookup.assert_called_once_with(
-            ["v1", "v2"], params=None, ref_genome="hg38", max_requests=5
+            ["v1", "v2"],
+            params=None,
+            ref_genome="hg38",
+            max_requests=5,
+            query_type="variants",
         )
         assert result_list == [{"id": "1"}, {"id": "2"}]
 
@@ -341,7 +351,7 @@ class TestLookupFromFile:
             return_value=_async_gen_from_list(
                 [
                     BatchResult(
-                        variants=["v1", "v2"],
+                        queries=["v1", "v2"],
                         response=[{"id": "1"}, {"id": "2"}],
                     )
                 ]
@@ -351,6 +361,7 @@ class TestLookupFromFile:
         result = lookup_from_file(
             api,
             str(f),
+            query_type="variants",
             request_parameters=None,
             ref_genome="hg19",
             max_requests=5,

@@ -125,10 +125,17 @@ Requires **Python ≥ 3.11, < 3.15**.
 
 ## VarSomeAPIClient
 
-### Single variant lookup (synchronous)
+### Single lookup (synchronous)
 
 `lookup` is a synchronous convenience wrapper around the underlying async method.
 It returns a plain `dict` containing the full API JSON response.
+
+The `query_type` parameter controls what type of lookup is performed:
+- `"variants"` (default): variant lookup
+- `"genes"`: gene symbol lookup
+- `"cnvs"`: CNV query lookup
+
+#### Variant lookup
 
 ```python
 from varsome_api.client import VarSomeAPIClient
@@ -146,7 +153,42 @@ print(result["chromosome"])
 print(result["gnomad_exomes"])
 ```
 
-`api_key` is optional for single-variant lookups against public data. It is
+#### Gene lookup
+
+```python
+from varsome_api.client import VarSomeAPIClient
+
+api = VarSomeAPIClient(api_key="YOUR_API_KEY")
+
+result = api.lookup(
+    "BRCA1",
+    query_type="genes",
+    ref_genome="hg19",
+)
+
+print(result)
+```
+
+#### CNV lookup
+
+```python
+from varsome_api.client import VarSomeAPIClient
+
+api = VarSomeAPIClient(api_key="YOUR_API_KEY")
+
+result = api.lookup(
+    "chr1:122:5235:DEL",
+    query_type="cnvs",
+    ref_genome="hg19",
+)
+
+print(result)
+```
+
+> **Note:** CNV queries do not support batch mode. Each CNV must be looked up
+> individually via `lookup(..., query_type="cnvs")`.
+
+`api_key` is optional for single-item lookups against public data. It is
 required for batch lookups.
 
 To target a specific API server, pass `api_url`:
@@ -160,9 +202,16 @@ api = VarSomeAPIClient(
 
 ### Batch lookup (synchronous)
 
-`batch_lookup` sends variants in batches and returns a `list[BatchResult]`.
-Each `BatchResult` pairs the submitted variant strings with the corresponding
-API response list, aligned by index.
+`batch_lookup` sends items (variants, genes, etc.) in batches and returns a
+`list[BatchResult]`. Each `BatchResult` pairs the submitted query strings with
+the corresponding API response list, aligned by index.
+
+The `query_type` parameter controls what type of batch lookup is performed:
+- `"variants"` (default): variant batch lookup
+- `"genes"`: gene symbol batch lookup
+- `"cnvs"`: not supported for batch (CNVs must be queried individually)
+
+#### Batch variant lookup
 
 ```python
 from varsome_api.client import VarSomeAPIClient
@@ -178,17 +227,46 @@ batch_results = api.batch_lookup(
 )
 
 for batch in batch_results:
-    for i, variant_str in enumerate(batch.variants):
+    for i, query_string in enumerate(batch.queries):
         annotation = batch.response[i]
         if "error" in annotation:
-            print(f"{variant_str}: error — {annotation['error']}")
+            print(f"{query_string}: error — {annotation['error']}")
         elif "filtered_out" in annotation:
-            print(f"{variant_str}: filtered out — {annotation['filtered_out']}")
+            print(f"{query_string}: filtered out — {annotation['filtered_out']}")
         else:
-            print(f"{variant_str}: gnomad_exomes = {annotation.get('gnomad_exomes')}")
+            print(f"{query_string}: gnomad_exomes = {annotation.get('gnomad_exomes')}")
 ```
 
-`max_variants_per_batch` (default `200`) controls how many variants are sent per
+#### Batch gene lookup
+
+```python
+from varsome_api.client import VarSomeAPIClient
+
+api = VarSomeAPIClient(api_key="YOUR_API_KEY")
+
+genes = ["BRCA1", "TP53", "EGFR"]
+
+batch_results = api.batch_lookup(
+    genes,
+    query_type="genes",
+    params={"add-source-databases": "cgd"},
+    ref_genome="hg19",
+)
+
+for batch in batch_results:
+    for i, gene_symbol in enumerate(batch.queries):
+        annotation = batch.response[i]
+        if "error" in annotation:
+            print(f"{gene_symbol}: error — {annotation['error']}")
+        else:
+            print(f"{gene_symbol}: {annotation}")
+```
+
+> **Batch limits:** The API enforces different limits per environment:
+> - **Live / Stable**: Variants: 200, Genes: 100
+> - **Staging**: Variants: 50, Genes: 10
+
+`max_variants_per_batch` (default `200`) controls how many items are sent per
 POST request. `max_requests` (default `5`) controls the maximum number of
 concurrent HTTP requests:
 
@@ -217,10 +295,11 @@ except VarSomeAPIException as e:
 
 ## Async interface
 
-The client is async-native. The synchronous `lookup` / `batch_lookup` methods are
-thin wrappers. Use the async interface directly for better performance in async code.
+The client is async-native. The synchronous `lookup` / `batch_lookup` methods
+are thin wrappers. Use the async interface directly for better performance in
+async code.
 
-### Single lookup
+### Single item lookup
 
 ```python
 import asyncio
@@ -228,12 +307,29 @@ from varsome_api.client import VarSomeAPIClient
 
 async def main():
     async with VarSomeAPIClient(api_key="YOUR_API_KEY") as api:
+        # Variant lookup
         result = await api.alookup(
             "chr7-140453136-A-T",
             params={"add-source-databases": "gnomad-exomes"},
             ref_genome="hg19",
         )
         print(result["chromosome"])
+
+        # Gene lookup
+        result = await api.alookup(
+            "BRCA1",
+            query_type="genes",
+            ref_genome="hg19",
+        )
+        print(result)
+
+        # CNV lookup
+        result = await api.alookup(
+            "chr1:100:L1254:DUP",
+            query_type="cnvs",
+            ref_genome="hg19",
+        )
+        print(result)
 
 asyncio.run(main())
 ```
@@ -245,7 +341,10 @@ call creates and closes its own session automatically.
 ### Batch lookup (async generator)
 
 `abatch_lookup` is an async generator that yields `BatchResult` objects as each
-batch completes:
+batch completes. The `query_type` parameter controls whether variants, genes, or
+other query types are batch-processed.
+
+#### Batch variant lookup
 
 ```python
 import asyncio
@@ -261,9 +360,33 @@ async def main():
             ref_genome="hg19",
             max_requests=5,
         ):
-            for i, variant_str in enumerate(batch.variants):
+            for i, query_string in enumerate(batch.queries):
                 annotation = batch.response[i]
-                print(variant_str, annotation.get("gnomad_exomes"))
+                print(query_string, annotation.get("gnomad_exomes"))
+
+asyncio.run(main())
+```
+
+#### Batch gene lookup
+
+```python
+import asyncio
+from varsome_api.client import VarSomeAPIClient
+
+async def main():
+    genes = ["BRCA1", "TP53", "EGFR"]
+
+    async with VarSomeAPIClient(api_key="YOUR_API_KEY") as api:
+        async for batch in api.abatch_lookup(
+            genes,
+            query_type="genes",
+            ref_genome="hg19",
+            max_requests=5,
+        ):
+            for i, gene_symbol in enumerate(batch.queries):
+                annotation = batch.response[i]
+                print(gene_symbol, annotation)
+
 
 asyncio.run(main())
 ```
@@ -384,7 +507,7 @@ from varsome_api.vcf import VCFAnnotator
 annotator = VCFAnnotator(
     api_key="YOUR_API_KEY",
     ref_genome="hg19",
-    request_parameters={"add-all-data": "1"},
+    request_parameters={"add-ACMG-annotation": "1"},
 )
 annotator.annotate("input.vcf", "annotated.vcf")
 ```
@@ -592,7 +715,7 @@ from varsome_api.models.slim.annotation import AnnotatedVariant
 api = VarSomeAPIClient(api_key="YOUR_API_KEY")
 
 for batch in api.batch_lookup(my_variants, params={...}, ref_genome="hg19"):
-    for i, variant_str in enumerate(batch.variants):
+    for i, query_string in enumerate(batch.queries):
         raw = batch.response[i]
         if "error" not in raw and "filtered_out" not in raw:
             variant = AnnotatedVariant(**raw)

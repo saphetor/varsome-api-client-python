@@ -18,12 +18,12 @@ If you need compatibility with Python 3.10 or earlier, use the previous release:
 
 ## What this library provides
 
-- **`varsome_api_run`** — look up one or more variants and receive the full JSON
-  annotation response.
+- **`varsome_api_run`** — look up one or more variants, genes, or CNVs and receive
+  the full JSON annotation response.
 - **`varsome_api_annotate_vcf`** — read a VCF file, annotate every variant via the
   VarSome API, and write an annotated output VCF.
-- **`VarSomeAPIClient`** — a Python class for integrating variant annotation
-  directly into your own code (synchronous and async interfaces).
+- **`VarSomeAPIClient`** — a Python class for integrating variant, gene, and CNV
+  annotation directly into your own code (synchronous and async interfaces).
 - **`VCFAnnotator`** — a customisable VCF annotation pipeline class for use in
   your own Python projects.
 
@@ -140,6 +140,27 @@ varsome_api_run -g hg19 -k YOUR_API_KEY \
 varsome_api_run -g hg19 -k YOUR_API_KEY -i variants.txt -o annotations.json -p add-all-data=1
 ```
 
+### Look up gene information
+
+```bash
+varsome_api_run -y genes -g hg19 -k YOUR_API_KEY -q BRCA1 TP53
+```
+
+```bash
+varsome_api_run -y genes -g hg19 -k YOUR_API_KEY -i genes.txt -o gene_annotations.json
+```
+
+### Look up CNV information
+
+```bash
+varsome_api_run -y cnvs -g hg19 -k YOUR_API_KEY -q 'chr1:122:5235:DEL' 'chr1:100:L1254:DUP'
+```
+
+```bash
+varsome_api_run -y cnvs -g hg19 -k YOUR_API_KEY -i cnvs.txt -o cnv_annotations.json
+```
+
+
 Output defaults to stdout. Use `-o` to write to a file.
 The output is always written in [JSON Lines](https://jsonlines.org) format —
 one JSON object per line — regardless of whether you write to a file or stdout.
@@ -161,11 +182,20 @@ varsome_api_annotate_vcf -g hg19 -k YOUR_API_KEY -i input.vcf -o annotated.vcf -
 |------|-------------|---------|
 | `-k` | API key (required) | — |
 | `-g` | Reference genome: `hg19` or `hg38` | `hg19` |
+| `-y` | Query type: `variants`, `genes`, or `cnvs` | `variants` |
 | `-p` | Request parameters as `key=value` pairs | `add-ACMG-annotation=1` |
 | `-u` | API server URL | `https://api.varsome.com` |
 | `-t` | Max concurrent requests (1–20) | `5` |
-| `-m` | Max variants per batch request (1–200) | `100` |
+| `-m` | Max items per batch request | `100` |
 | `-v` / `--verbose` | Enable debug-level logging | off |
+
+> **Batch limits:** The `-m` parameter specifies the maximum number of items
+> (variants or genes) per batch request. The API enforces per-environment limits:
+> - **Live / Stable**: Variants: 200, Genes: 100
+> - **Staging**: Variants: 50, Genes: 10
+>
+> If you exceed the environment's limit, the API will return an error. Adjust `-m`
+> accordingly. CNV queries do not support batching and are always sent individually.
 
 Run any tool with `--help` for the full option reference.
 

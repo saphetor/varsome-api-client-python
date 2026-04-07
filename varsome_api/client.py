@@ -10,7 +10,12 @@ import aiohttp
 
 from varsome_api import __version__
 from varsome_api._sync import run_sync, sync_wrapper
-from varsome_api.constants import DEFAULT_REF_GENOME, RefGenome
+from varsome_api.constants import (
+    DEFAULT_QUERY_TYPE,
+    DEFAULT_REF_GENOME,
+    QueryType,
+    RefGenome,
+)
 from varsome_api.exceptions import VarSomeAPIException
 from varsome_api.log import logger
 
@@ -25,19 +30,20 @@ DEFAULT_API_URL = "https://api.varsome.com"
 
 @dataclass(frozen=True, slots=True, kw_only=True)
 class BatchResult:
-    """Pairs an input variant batch with the corresponding API response.
+    """Pairs a batch of queries with the corresponding API response.
 
-    Allows callers to correlate which variants were sent in a particular
-    batch request with the response returned by the API.  This is
-    especially useful when the response contains errors that omit the
-    original variant identifier.
+    Allows callers to correlate which queries (variants, genes, CNVs, etc.)
+    were sent in a particular batch request with the response returned by
+    the API. This is especially useful when the response contains errors
+    that omit the original query identifier.
 
     Attributes:
-        variants: The variant strings sent in this batch request.
+        queries: The query strings sent in this batch request (variants,
+            genes, CNVs, or other query types).
         response: The parsed JSON response from the API for this batch.
     """
 
-    variants: list[str]
+    queries: list[str]
     response: list[dict[str, Any]]
 
 
@@ -251,11 +257,30 @@ class VarSomeAPIClientBase:
 
 
 class VarSomeAPIClient(VarSomeAPIClientBase):
-    """High-level client for single and batch variant lookups via the VarSome API."""
+    """High-level client for single and batch lookups (variants, genes, or CNVs) via the VarSome API.
 
-    lookup_path = "/lookup/%s"
-    ref_genome_lookup_path = lookup_path + "/%s"
-    batch_lookup_path = "/lookup/batch/%s"
+    Supports querying variants, genes, and CNVs with a unified interface.
+    The query_type parameter controls endpoint selection and request/response handling.
+    """
+
+    # API endpoint paths
+    _ENDPOINTS = {
+        "variants": {
+            "single": "/lookup/%s/%s",  # query, ref_genome
+            "batch": "/lookup/batch/%s",  # ref_genome
+            "batch_key": "variants",
+        },
+        "genes": {
+            "single": "/lookup/gene/%s/%s",  # gene_symbol, ref_genome
+            "batch": "/lookup/genes/batch/%s",  # ref_genome
+            "batch_key": "genes",
+        },
+        "cnvs": {
+            "single": "/lookup/cnv/%s/%s",  # query, ref_genome
+            "batch": None,  # CNVs don't support batch
+            "batch_key": None,
+        },
+    }
 
     def __init__(
         self,
@@ -263,54 +288,96 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
         api_url: str | None = None,
         max_variants_per_batch: int = 200,
     ) -> None:
-        """Initialise the variant lookup client.
+        """Initialise the lookup client.
 
         Args:
             api_key: Optional API authentication token.
             api_url: Optional custom API base URL.
-            max_variants_per_batch: Maximum number of variants sent in a
+            max_variants_per_batch: Maximum number of items sent in a
                 single batch POST request. Must be a positive integer.
         """
         super().__init__(api_key, api_url)
         self.max_variants_per_batch = max_variants_per_batch
+
+    @staticmethod
+    def _get_single_url(
+        query_type: QueryType, query: str, ref_genome: RefGenome
+    ) -> str:
+        """Build the single-item lookup URL for the given query type.
+
+        Args:
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
+            query: The query string (variant, gene symbol, or CNV query).
+            ref_genome: Reference genome identifier.
+
+        Returns:
+            The formatted URL path.
+        """
+        return VarSomeAPIClient._ENDPOINTS[query_type]["single"] % (query, ref_genome)
+
+    @staticmethod
+    def _get_batch_url(query_type: QueryType, ref_genome: RefGenome) -> str | None:
+        """Build the batch lookup URL for the given query type.
+
+        Args:
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
+            ref_genome: Reference genome identifier.
+
+        Returns:
+            The formatted URL path, or None if batch is not supported.
+        """
+        batch_path = VarSomeAPIClient._ENDPOINTS[query_type]["batch"]
+        return batch_path % ref_genome if batch_path else None
+
+    @staticmethod
+    def _get_batch_key(query_type: QueryType) -> str | None:
+        """Get the JSON key name for batch request payloads.
+
+        Args:
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
+
+        Returns:
+            The key name (e.g., 'variants' or 'genes'), or None if batch is not supported.
+        """
+        return VarSomeAPIClient._ENDPOINTS[query_type]["batch_key"]
 
     async def alookup(
         self,
         query: str,
         params: dict[str, Any] | None = None,
         ref_genome: RefGenome = DEFAULT_REF_GENOME,
+        query_type: QueryType = DEFAULT_QUERY_TYPE,
     ) -> dict[str, Any]:
-        """Look up annotations for a single variant asynchronously.
+        """Look up annotations for a single item (variant, gene, or CNV) asynchronously.
 
         Args:
-            query: Variant representation (e.g. ``"chr19:20082943:1:G"``).
-            params: Optional HTTP GET parameters. Refer to
-                https://api.varsome.com/docs/variants/ for available parameters.
+            query: The query string (variant representation, gene symbol, or CNV query).
+            params: Optional HTTP GET parameters.
             ref_genome: Reference genome (``"hg19"`` or ``"hg38"``).
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
 
         Returns:
-            A dictionary of variant annotations. Refer to
-            https://api.varsome.com/docs/variants/ for the response schema.
+            A dictionary of annotations.
         """
-        url = self.ref_genome_lookup_path % (query, ref_genome)
+        url = self._get_single_url(query_type, query, ref_genome)
         return await self.get(url, params=params)
 
     lookup = sync_wrapper(alookup)
 
     async def _batch_producer(
-        self, variants: Iterable[str] | AsyncIterable[str], queue: asyncio.Queue
+        self, items: Iterable[str] | AsyncIterable[str], queue: asyncio.Queue
     ) -> None:
-        """Add batches of variants to the request queue."""
+        """Add batches of items to the request queue."""
         batch = []
-        if isinstance(variants, AsyncIterable):
-            async for variant in variants:
-                batch.append(variant)
+        if isinstance(items, AsyncIterable):
+            async for item in items:
+                batch.append(item)
                 if len(batch) >= self.max_variants_per_batch:
                     await queue.put(batch)
                     batch = []
         else:
-            for variant in variants:
-                batch.append(variant)
+            for item in items:
+                batch.append(item)
                 if len(batch) >= self.max_variants_per_batch:
                     await queue.put(batch)
                     batch = []
@@ -323,11 +390,20 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
         session: aiohttp.ClientSession,
         request_queue: asyncio.Queue,
         result_queue: asyncio.Queue,
-        url,
-        params,
+        url: str,
+        params: dict[str, Any] | None,
+        batch_key: str,
     ) -> None:
-        """Consume batches of variants from the request
-        queue and send them to the API."""
+        """Consume batches from the request queue and send them to the API.
+
+        Args:
+            session: Active aiohttp client session.
+            request_queue: Queue of batches to process.
+            result_queue: Queue to put results/exceptions into.
+            url: The API endpoint URL.
+            params: Optional query parameters.
+            batch_key: The JSON key for the batch payload (e.g., 'variants' or 'genes').
+        """
         while True:
             batch = await request_queue.get()
             if batch is None:
@@ -339,10 +415,10 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
                     path=url,
                     method="POST",
                     params=params,
-                    json={"variants": batch},
+                    json={batch_key: batch},
                     headers={"Content-Type": "application/json"},
                 )
-                await result_queue.put(BatchResult(variants=batch, response=response))
+                await result_queue.put(BatchResult(queries=batch, response=response))
             except VarSomeAPIException as e:
                 await result_queue.put(e)
             finally:
@@ -350,49 +426,61 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
 
     async def abatch_lookup(
         self,
-        variants: Iterable[str] | AsyncIterable[str] | AsyncGenerator[Any, None],
+        items: Iterable[str] | AsyncIterable[str] | AsyncGenerator[Any, None],
         params: dict[str, Any] | None = None,
         ref_genome: RefGenome = DEFAULT_REF_GENOME,
         max_requests: int = 5,
+        query_type: QueryType = DEFAULT_QUERY_TYPE,
     ) -> AsyncGenerator[BatchResult, None]:
-        """Look up annotations for a list of variants asynchronously in batches.
+        """Look up annotations for a list of items asynchronously in batches.
 
-        Splits variants into batches of *max_variants_per_batch* and sends
-        them concurrently via POST requests.  Concurrency is bounded by
-        *max_requests* worker tasks — at most that many HTTP requests are
-        in-flight at any given time.
+        Supports variants, genes, and CNVs (though CNVs don't support batch mode).
+        Splits items into batches of *max_variants_per_batch* and sends them
+        concurrently via POST requests. Concurrency is bounded by *max_requests*
+        worker tasks — at most that many HTTP requests are in-flight at any given time.
 
-        Each yielded ``BatchResult`` pairs the original variant strings with
-        the API response, allowing callers to correlate inputs with outputs —
-        especially useful when the response omits the original variant
-        identifier.
+        Each yielded ``BatchResult`` pairs the original query strings with
+        the API response, allowing callers to correlate inputs with outputs.
 
         Args:
-            variants: Variant strings to look up (sync or async iterable).
+            items: Query strings to look up (sync or async iterable).
             params: Optional dictionary of query parameters.
             ref_genome: Reference genome, either ``"hg19"`` or ``"hg38"``.
             max_requests: Maximum number of concurrent HTTP requests.
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
 
         Yields:
             A ``BatchResult`` for each batch, in completion order.
 
         Raises:
-            VarSomeAPIException: If any batch request fails.  All remaining
-                in-flight requests are cancelled, and the exception is
-                propagated.
+            VarSomeAPIException: If any batch request fails. All remaining
+                in-flight requests are cancelled, and the exception is propagated.
         """
-        url = self.batch_lookup_path % ref_genome
+        batch_url = self._get_batch_url(query_type, ref_genome)
+        batch_key = self._get_batch_key(query_type)
+
+        if batch_url is None or batch_key is None:
+            raise ValueError(
+                f"Query type '{query_type}' does not support batch operations. "
+                "Use single item lookups instead."
+            )
+
         request_queue = asyncio.Queue(maxsize=max_requests * 2)
         response_queue: asyncio.Queue[BatchResult | Exception | None] = asyncio.Queue()
 
         async with self._ensure_session() as session:
             producer_task = asyncio.create_task(
-                self._batch_producer(variants, request_queue)
+                self._batch_producer(items, request_queue)
             )
             workers = [
                 asyncio.create_task(
                     self._batch_worker(
-                        session, request_queue, response_queue, url, params
+                        session,
+                        request_queue,
+                        response_queue,
+                        batch_url,
+                        params,
+                        batch_key,
                     )
                 )
                 for _ in range(max_requests)
@@ -424,20 +512,22 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
 
     def batch_lookup(
         self,
-        variants: list[str],
+        items: list[str],
         params: dict[str, Any] | None = None,
         ref_genome: RefGenome = DEFAULT_REF_GENOME,
         max_requests: int = 5,
+        query_type: QueryType = DEFAULT_QUERY_TYPE,
     ) -> list[BatchResult]:
         """Synchronous wrapper around :meth:`abatch_lookup`.
 
         Collects every batch result into a list and returns it.
 
         Args:
-            variants: List of variant strings to look up.
+            items: List of query strings to look up (variants, genes, etc.).
             params: Optional dictionary of query parameters.
             ref_genome: Reference genome, either "hg19" or "hg38".
             max_requests: Maximum number of concurrent requests.
+            query_type: Type of query: 'variants', 'genes', or 'cnvs'.
 
         Returns:
             A list of ``BatchResult`` objects, one per batch.
@@ -450,10 +540,11 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
             return [
                 result
                 async for result in self.abatch_lookup(
-                    variants,
+                    items,
                     params=params,
                     ref_genome=ref_genome,
                     max_requests=max_requests,
+                    query_type=query_type,
                 )
             ]
 

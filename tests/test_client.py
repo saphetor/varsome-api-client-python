@@ -38,25 +38,25 @@ def _build_mock_session(status: int, json_data: Any) -> MagicMock:
 class TestBatchResult:
     """Verify the ``BatchResult`` dataclass behaviour."""
 
-    def test_stores_variants_and_response(self) -> None:
-        variants = ["chr1:100:A:T", "chr2:200:G:C"]
+    def test_stores_queries_and_response(self) -> None:
+        queries = ["chr1:100:A:T", "chr2:200:G:C"]
         response = [{"chromosome": "chr1"}, {"chromosome": "chr2"}]
-        result = BatchResult(variants=variants, response=response)
-        assert result.variants == variants
+        result = BatchResult(queries=queries, response=response)
+        assert result.queries == queries
         assert result.response == response
 
     def test_correlates_errors_with_input(self) -> None:
-        """When the API returns an error without the original variant,
+        """When the API returns an error without the original query,
         callers can still identify the batch that caused it."""
-        variants = ["chr1:100:A:T", "chr7:BAD:X:Y"]
+        queries = ["chr1:100:A:T", "chr7:BAD:X:Y"]
         response = [
             {"chromosome": "chr1", "original_variant": "chr1:100:A:T"},
             {"error": "Invalid variant format"},
         ]
-        result = BatchResult(variants=variants, response=response)
+        result = BatchResult(queries=queries, response=response)
         errors = [r for r in result.response if "error" in r]
         assert len(errors) == 1
-        assert result.variants == variants
+        assert result.queries == queries
 
 
 class TestVarSomeAPIClientBaseInit:
@@ -381,11 +381,11 @@ class TestVarSomeAPIClientBatchWorker:
         await request_queue.put(None)
         with patch.object(type(client), "_make_request", side_effect=fake):
             await client._batch_worker(
-                session, request_queue, result_queue, "/lookup/batch/hg19", None
+                session, request_queue, result_queue, "/lookup/batch/hg19", None, "variants"
             )
         result = result_queue.get_nowait()
         assert isinstance(result, BatchResult)
-        assert result.variants == ["v1", "v2"]
+        assert result.queries == ["v1", "v2"]
 
     async def test_failed_batch_puts_exception_on_result_queue(self) -> None:
         """On ``VarSomeAPIException``, the exception must be enqueued, not re-raised."""
@@ -402,7 +402,7 @@ class TestVarSomeAPIClientBatchWorker:
         await request_queue.put(None)
         with patch.object(type(client), "_make_request", side_effect=failing_request):
             await client._batch_worker(
-                session, request_queue, result_queue, "/lookup/batch/hg19", None
+                session, request_queue, result_queue, "/lookup/batch/hg19", None, "variants"
             )
         queued = result_queue.get_nowait()
         assert isinstance(queued, VarSomeAPIException)
@@ -433,14 +433,14 @@ class TestVarSomeAPIClientBatchLookup:
         assert len(results) == 3
         for result in results:
             assert isinstance(result, BatchResult)
-            assert len(result.variants) <= 2
-        all_variants = [v for r in results for v in r.variants]
-        assert sorted(all_variants) == sorted(variants)
+            assert len(result.queries) <= 2
+        all_queries = [v for r in results for v in r.queries]
+        assert sorted(all_queries) == sorted(variants)
 
     async def test_batch_response_paired_with_input(
         self, make_fake_request: Callable
     ) -> None:
-        """Each ``BatchResult.response`` must correspond to its ``.variants``."""
+        """Each ``BatchResult.response`` must correspond to its ``.queries``."""
         variants = ["chr1:100:A:T", "chr2:200:G:C"]
         fake = make_fake_request(lambda batch: [{"original_variant": v} for v in batch])
         client = VarSomeAPIClient(api_key="test", max_variants_per_batch=10)
@@ -450,7 +450,7 @@ class TestVarSomeAPIClientBatchLookup:
                     r async for r in client.abatch_lookup(variants, ref_genome="hg19")
                 ]
         assert len(results) == 1
-        assert results[0].variants == variants
+        assert results[0].queries == variants
         assert results[0].response == [
             {"original_variant": "chr1:100:A:T"},
             {"original_variant": "chr2:200:G:C"},
@@ -470,7 +470,7 @@ class TestVarSomeAPIClientBatchLookup:
                 r
                 async for r in client.abatch_lookup(async_variants(), ref_genome="hg19")
             ]
-        all_variants = [v for r in results for v in r.variants]
+        all_variants = [v for r in results for v in r.queries]
         assert sorted(all_variants) == ["v1", "v2", "v3"]
 
     async def test_propagates_batch_exception(self) -> None:
@@ -496,5 +496,5 @@ class TestVarSomeAPIClientBatchLookup:
             results = client.batch_lookup(variants, ref_genome="hg19")
         assert len(results) == 1
         assert isinstance(results[0], BatchResult)
-        assert results[0].variants == variants
+        assert results[0].queries == variants
         assert results[0].response == [{"id": "v1"}, {"id": "v2"}]
