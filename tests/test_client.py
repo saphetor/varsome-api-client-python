@@ -381,7 +381,12 @@ class TestVarSomeAPIClientBatchWorker:
         await request_queue.put(None)
         with patch.object(type(client), "_make_request", side_effect=fake):
             await client._batch_worker(
-                session, request_queue, result_queue, "/lookup/batch/hg19", None, "variants"
+                session,
+                request_queue,
+                result_queue,
+                "/lookup/batch/hg19",
+                None,
+                "variants",
             )
         result = result_queue.get_nowait()
         assert isinstance(result, BatchResult)
@@ -402,7 +407,12 @@ class TestVarSomeAPIClientBatchWorker:
         await request_queue.put(None)
         with patch.object(type(client), "_make_request", side_effect=failing_request):
             await client._batch_worker(
-                session, request_queue, result_queue, "/lookup/batch/hg19", None, "variants"
+                session,
+                request_queue,
+                result_queue,
+                "/lookup/batch/hg19",
+                None,
+                "variants",
             )
         queued = result_queue.get_nowait()
         assert isinstance(queued, VarSomeAPIException)
@@ -410,10 +420,12 @@ class TestVarSomeAPIClientBatchWorker:
 
 
 class TestVarSomeAPIClientBatchLookup:
-    """Verify ``VarSomeAPIClient.abatch_lookup`` and its sync wrapper ``batch_lookup``."""
+    """Verify ``VarSomeAPIClient.abatch_lookup``
+    and its sync wrapper ``batch_lookup``."""
 
     async def test_yields_batch_results(self, make_fake_request: Callable) -> None:
-        """Each yielded item must be a ``BatchResult`` covering at most *batch_size* variants."""
+        """Each yielded item must be a ``BatchResult`` covering
+        at most *batch_size* variants."""
         variants = ["v1", "v2", "v3", "v4", "v5"]
         mock_responses = {
             ("v1", "v2"): [{"id": "1"}, {"id": "2"}],

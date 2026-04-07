@@ -257,7 +257,8 @@ class VarSomeAPIClientBase:
 
 
 class VarSomeAPIClient(VarSomeAPIClientBase):
-    """High-level client for single and batch lookups (variants, genes, or CNVs) via the VarSome API.
+    """High-level client for single and batch lookups (variants, genes, or CNVs)
+    via the VarSome API.
 
     Supports querying variants, genes, and CNVs with a unified interface.
     The query_type parameter controls endpoint selection and request/response handling.
@@ -337,7 +338,8 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
             query_type: Type of query: 'variants', 'genes', or 'cnvs'.
 
         Returns:
-            The key name (e.g., 'variants' or 'genes'), or None if batch is not supported.
+            The key name (e.g., 'variants' or 'genes'), or None
+            if batch is not supported.
         """
         return VarSomeAPIClient._ENDPOINTS[query_type]["batch_key"]
 

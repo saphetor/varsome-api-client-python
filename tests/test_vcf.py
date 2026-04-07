@@ -338,7 +338,7 @@ class TestAnnotateVariantsAndWriteToVcf:
         header = pysam.VariantHeader()
         header.add_sample("S1")
         header.contigs.add("1")
-        with pysam.VariantFile(str(vcf_path), "w", header=header) as w:
+        with pysam.VariantFile(str(vcf_path), "w", header=header):
             pass
 
         annotator = VCFAnnotator(

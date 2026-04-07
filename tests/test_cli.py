@@ -1,5 +1,3 @@
-import argparse
-import logging
 from typing import Any
 from unittest.mock import MagicMock, patch
 
@@ -7,10 +5,7 @@ import pytest
 
 from varsome_api.cli.utils import (
     build_base_parser,
-    configure_logging,
     parse_request_parameters,
-    validate_batch_args,
-    validate_file_args,
 )
 from varsome_api.cli.varsome_api_annotate_vcf import (
     build_parser as build_annotate_parser,

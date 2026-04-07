@@ -40,7 +40,8 @@ class TestRunSync:
         assert run_sync(pipeline()) == 6
 
     async def test_fallback_when_loop_is_running(self) -> None:
-        """When called from within a running loop, must still work via thread fallback."""
+        """When called from within a running loop, must still work
+        via thread fallback."""
 
         async def inner() -> int:
             return 42

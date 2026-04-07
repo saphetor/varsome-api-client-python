@@ -4,7 +4,6 @@ import pyarrow as pa
 
 from varsome_api.models.slim.annotation import AnnotatedVariant
 
-
 PARQUET_SCHEMA: pa.Schema = pa.schema(
     [
         pa.field("original_variant", pa.string(), nullable=True),
@@ -31,6 +30,7 @@ def _coerce_float(value: float | str | None) -> float | None:
         return float(value)
     except (TypeError, ValueError):
         return None
+
 
 def to_parquet_row(variant: AnnotatedVariant) -> dict[str, Any]:
     clean_acmg_rules: list[str] = [

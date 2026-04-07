@@ -14,7 +14,7 @@ from varsome_api.client import VarSomeAPIClient
 from varsome_api.constants import DEFAULT_REF_GENOME, RefGenome
 from varsome_api.exceptions import VarSomeAPIException
 from varsome_api.models.slim.annotation import AnnotatedVariant as SlimAnnotatedVariant
-from varsome_api.models.variant import AnnotatedVariantPropertiesMixin, AnnotatedVariant
+from varsome_api.models.variant import AnnotatedVariant
 
 try:
     import pysam

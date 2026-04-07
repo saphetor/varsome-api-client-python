@@ -4,7 +4,6 @@ repos:
     rev: 26.3.0
     hooks:
     - id: black
-      language_version: python3.11
   - repo: https://github.com/PyCQA/isort
     rev: 8.0.1
     hooks:
@@ -15,7 +14,7 @@ repos:
       - id: flake8
         fail_fast: true
   - repo: https://github.com/commitizen-tools/commitizen
-    rev: 4.13.9
+    rev: v4.13.9
     hooks:
       - id: commitizen
         stages: [commit-msg]

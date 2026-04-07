@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
-"""CLI tool for performing single or batch lookups (variants, genes, or CNVs) via the VarSome API."""
+"""CLI tool for performing single or batch lookups (variants, genes,
+or CNVs) via the VarSome API."""
 
 import argparse
 import asyncio
@@ -20,9 +21,9 @@ from varsome_api.client import VarSomeAPIClient
 from varsome_api.constants import (
     DEFAULT_QUERY_TYPE,
     DEFAULT_REF_GENOME,
+    QUERY_TYPES,
     QueryType,
     RefGenome,
-    QUERY_TYPES,
 )
 from varsome_api.log import logger
 
@@ -74,7 +75,8 @@ def build_parser() -> argparse.ArgumentParser:
         "-y",
         help=(
             "Query type: 'variants', 'genes', or 'cnvs'. "
-            "Note: CNV queries do not support batch mode, each CNV is looked up individually. "
+            "Note: CNV queries do not support batch mode, each "
+            "CNV is looked up individually. "
             "Check documentation for batch limits per environment"
         ),
         type=str,

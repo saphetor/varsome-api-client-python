@@ -5,17 +5,16 @@ import sys
 import time
 from pathlib import Path
 
+from writer import ParquetWriter
+
 from varsome_api.client import VarSomeAPIClient
 from varsome_api.constants import DEFAULT_REF_GENOME, REFERENCE_GENOMES, RefGenome
 from varsome_api.exceptions import VarSomeAPIException
 from varsome_api.log import logger
 from varsome_api.models.slim.annotation import AnnotatedVariant
 
-from writer import ParquetWriter
-
 DEFAULT_INPUT = Path(__file__).parent / "variants.csv"
 DEFAULT_OUTPUT = Path(__file__).parent / "annotated_variants.parquet"
-
 
 
 def _build_arg_parser() -> argparse.ArgumentParser:
