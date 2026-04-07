@@ -186,7 +186,7 @@ class VarSomeAPIClientBase:
             request_kwargs["headers"] = headers
         try:
             async with session.request(method, **request_kwargs) as response:
-                if response.status in VarSomeAPIException.ERROR_CODES:
+                if response.status >= 400:
                     error_message = await response.json()
                     raise VarSomeAPIException(response.status, error_message)
                 return await response.json()
@@ -489,7 +489,7 @@ class VarSomeAPIClient(VarSomeAPIClientBase):
             ]
 
             async def wrap_up():
-                await producer_task
+                _ = await producer_task
                 await request_queue.join()
                 await response_queue.put(None)
 
