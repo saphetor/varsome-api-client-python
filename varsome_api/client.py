@@ -52,7 +52,7 @@ def _log_request_time(func: Callable) -> Callable:
 
     Expects the wrapped function to receive ``path`` and ``method`` keyword
     arguments.  For POST requests carrying a ``json`` payload with a
-    ``"variants"`` key the number of variants in the batch is logged;
+    ``"variants"`` or ``"genes"`` key the number of variants in the batch is logged;
     GET requests are logged as a single-variant lookup.
 
     Args:
@@ -70,18 +70,19 @@ def _log_request_time(func: Callable) -> Callable:
         method = kwargs.get("method", "GET")
         json_body = kwargs.get("json")
         if method == "POST" and isinstance(json_body, dict):
-            variant_count = len(json_body.get("variants", []))
+            object_data = json_body.get("variants") or json_body.get("genes") or []
+            object_count = len(object_data)
         else:
-            variant_count = 1
+            object_count = 1
         try:
             return await func(*args, **kwargs)
         finally:
             elapsed = time.monotonic() - start_time
             logger.debug(
-                "Request on %s took %.2f seconds (%d variant(s))",
+                "Request on %s took %.2f seconds (%d variants / genes(s))",
                 path,
                 elapsed,
-                variant_count,
+                object_count,
             )
 
     return wrapper
