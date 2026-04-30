@@ -49,7 +49,7 @@ docker run --rm \
     -k YOUR_API_KEY \
     -g hg19 \
     -q 'chr7-140453136-A-T' \
-    -p add-all-data=1
+    -p add-ACMG-annotation=1
 ```
 
 ### Annotate multiple variants
@@ -77,7 +77,7 @@ docker run --rm \
     -g hg19 \
     -i /data/variants.txt \
     -o /data/annotations.json \
-    -p add-all-data=1
+    -p add-ACMG-annotation=1
 ```
 
 Replace `/path/to/your/data` with the absolute path to the directory on your host
@@ -99,8 +99,7 @@ docker run --rm \
     -k YOUR_API_KEY \
     -g hg19 \
     -i /data/input.vcf \
-    -o /data/annotated.vcf \
-    -p add-all-data=1
+    -o /data/annotated.vcf
 ```
 
 > **VCF limitation:** Only SNPs and small indels (≤ 200 bp) are supported.
@@ -121,8 +120,7 @@ docker run --rm \
     -i /data/input.vcf \
     -o /data/annotated.vcf \
     -t 10 \
-    -m 100 \
-    -p add-source-databases=gnomad-exomes,refseq-transcripts
+    -m 100
 ```
 
 ### Use the stable API server
@@ -138,8 +136,7 @@ docker run --rm \
     -g hg19 \
     -u https://stable-api.varsome.com \
     -i /data/input.vcf \
-    -o /data/annotated.vcf \
-    -p add-all-data=1
+    -o /data/annotated.vcf
 ```
 
 ---
@@ -164,7 +161,7 @@ docker run --rm \
     -k YOUR_API_KEY \
     -g hg19 \
     -q 'chr7-140453136-A-T' \
-    -p add-all-data=1
+    -p add-ACMG-annotation=1
 ```
 
 ### Multi-platform build (amd64 + arm64)

@@ -123,7 +123,7 @@ Use the `-u` flag to select a non-default server.
 ### Annotate a single variant
 
 ```bash
-varsome_api_run -g hg19 -k YOUR_API_KEY -q 'chr7-140453136-A-T' -p add-all-data=1
+varsome_api_run -g hg19 -k YOUR_API_KEY -q 'chr7-140453136-A-T' -p add-ACMG-annotation=1
 ```
 
 ### Annotate multiple variants in one call
@@ -137,7 +137,7 @@ varsome_api_run -g hg19 -k YOUR_API_KEY \
 ### Annotate variants from a text file (one variant per line)
 
 ```bash
-varsome_api_run -g hg19 -k YOUR_API_KEY -i variants.txt -o annotations.json -p add-all-data=1
+varsome_api_run -g hg19 -k YOUR_API_KEY -i variants.txt -o annotations.json -p add-ACMG-annotation=1
 ```
 
 ### Look up gene information
@@ -170,7 +170,7 @@ for details and migration guidance.
 ### Annotate a VCF file
 
 ```bash
-varsome_api_annotate_vcf -g hg19 -k YOUR_API_KEY -i input.vcf -o annotated.vcf -p add-all-data=1
+varsome_api_annotate_vcf -g hg19 -k YOUR_API_KEY -i input.vcf -o annotated.vcf -p add-ACMG-annotation=1
 ```
 
 > **VCF annotation limitation:** `varsome_api_annotate_vcf` supports SNPs and small
@@ -189,13 +189,24 @@ varsome_api_annotate_vcf -g hg19 -k YOUR_API_KEY -i input.vcf -o annotated.vcf -
 | `-m` | Max items per batch request | `100` |
 | `-v` / `--verbose` | Enable debug-level logging | off |
 
-> **Batch limits:** The `-m` parameter specifies the maximum number of items
-> (variants or genes) per batch request. The API enforces per-environment limits:
-> - **Live / Stable**: Variants: 200, Genes: 100
-> - **Staging**: Variants: 50, Genes: 10
->
-> If you exceed the environment's limit, the API will return an error. Adjust `-m`
-> accordingly. CNV queries do not support batching and are always sent individually.
+When using `-p` to specify request parameters, separate multiple parameters with spaces:
+
+```bash
+varsome_api_run -g hg19 -k YOUR_API_KEY -q 'chr7-140453136-A-T' \
+  -p add-ACMG-annotation=1 add-source-databases=gnomad-exomes,refseq-transcripts
+```
+
+Using the `-p` flag as part of the reference annotation command (`varsome_api_annotate_vcf`) with parameters other than
+the default `add-ACMG-annotation=1` will not produce the expected results. This is because `varsome_api_annotate_vcf` is designed to work with a specific set of parameters, and deviating from these may lead to unexpected behavior. For VCF annotation, it's recommended to stick with the default parameters or consult the documentation on how to extend the functionality of `VCFAnnotator` for custom annotation pipelines.
+
+
+**Batch limits:** The `-m` parameter specifies the maximum number of items
+(variants or genes) per batch request. The API enforces per-environment limits:
+- **Live / Stable**: Variants: 200, Genes: 100
+- **Staging**: Variants: 50, Genes: 10
+
+If you exceed the environment's limit, the API will return an error. Adjust `-m`
+accordingly. CNV queries do not support batching and are always sent individually.
 
 Run any tool with `--help` for the full option reference.
 
