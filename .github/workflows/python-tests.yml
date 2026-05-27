@@ -1,0 +1,73 @@
+name: Python Tests
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+        checks: write
+        pull-requests: write
+        contents: read
+        issues: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install system build dependencies
+      run: |
+        sudo apt-get update -qq
+        sudo apt-get install -y --no-install-recommends \
+          build-essential \
+          zlib1g-dev \
+          libbz2-dev \
+          liblzma-dev \
+          libcurl4-openssl-dev \
+          libssl-dev \
+          libdeflate-dev
+
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-in-project: true
+
+    - name: Load cached venv
+      uses: actions/cache@v4
+      id: cache-venv
+      with:
+        path: .venv
+        key: venv-${{ runner.os }}-${{ matrix.python-version }}-${{ hashFiles('**/poetry.lock') }}
+
+    - name: Install dependencies
+      run: poetry install --with dev
+
+    - name: Run tests
+      run: |
+        if [ "${{ matrix.python-version }}" = "3.13" ]; then
+          poetry run pytest -v --junitxml=pytest-report.xml --no-cov
+        else
+          poetry run pytest -v --junitxml=pytest-report.xml
+        fi
+
+    - name: Publish Test Results
+      # Using EnricoMi/publish-unit-test-result-action@v2
+      uses: EnricoMi/publish-unit-test-result-action@v2
+      if: always()
+      with:
+        files: pytest-report.xml
+        check_name: "Python Test Results (${{ matrix.python-version }})"

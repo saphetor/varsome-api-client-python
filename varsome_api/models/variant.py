@@ -1,193 +1,133 @@
-# Copyright 2018 Saphetor S.A.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-from .elements import *
+from varsome_api.models.annotation import VariantVariantApi
 
 
-class AnnotatedVariant(models.Base):
+class AnnotatedVariantPropertiesMixin:
+    """Mixin providing convenience properties for variant annotation results.
+
+    Expects the consuming class to declare the following attributes
+    (all ``None``-able):
+
+    - ``refseq_transcripts`` / ``ensembl_transcripts`` — iterables whose
+      items expose ``.items`` containing objects with a ``.gene_symbol``.
+    - ``ncbi_dbsnp`` — iterable whose items expose ``.rsid`` (list of ints).
+    - ``gnomad_exomes`` / ``gnomad_genomes`` — iterables whose items
+      expose ``.af`` and ``.an``.
+    - ``acmg_annotation`` — object with ``.verdict.acmg_rules.verdict``
+      and ``.verdict.classifications``.
     """
-    Base variant result definition model
-    Most fields are defined as list fields, even though they contain a single list item
-    This is due to the fact that VarSome API can return both current and old versions of databases
-    """
-
-    chromosome = fields.StringField(help_text="Chromosome")
-    alt = fields.StringField(help_text="ALT Sequence", required=False, nullable=True)
-    ref = fields.StringField(help_text="REF Sequence", required=False, nullable=True)
-    pos = fields.IntField(help_text="Position")
-    variant_id = fields.StringField(help_text="Variant Id")
-    refseq_transcripts = fields.ListField(
-        required=False, items_types=(Transcript,), help_text="RefSeq Transcripts"
-    )
-    ensembl_transcripts = fields.ListField(
-        required=False, items_types=(Transcript,), help_text="Ensembl Transcripts"
-    )
-    broad_exac = fields.ListField(required=False, items_types=(ExAC,), help_text="ExAC")
-    gnomad_exomes = fields.ListField(
-        required=False, items_types=(GnomAD,), help_text="gnomAD Exomes (ExAC)"
-    )
-    gnomad_exomes_coverage = fields.ListField(
-        required=False,
-        items_types=(GnomADCoverage,),
-        help_text="gnomAD exomes coverage",
-    )
-    gnomad_genomes = fields.ListField(
-        required=False, items_types=(GnomAD,), help_text="gnomAD Genomes"
-    )
-    gnomad_genomes_coverage = fields.ListField(
-        required=False,
-        items_types=(GnomADCoverage,),
-        help_text="gnomAD genomes coverage",
-    )
-    thousand_genomes = fields.ListField(
-        required=False, items_types=(ThousandGenomes,), help_text="1000 Genomes"
-    )
-    gerp = fields.ListField(required=False, items_types=(Gerp,), help_text="GERP")
-    isb_kaviar3 = fields.ListField(
-        required=False, items_types=(Kaviar3,), help_text="ISB Kaviar3"
-    )
-    dbnsfp = fields.ListField(required=False, items_types=(DbNSFP,), help_text="dbNSFP")
-    dann_snvs = fields.ListField(
-        required=False, items_types=(DannSNVs,), help_text="DANN score"
-    )
-    dbnsfp_dbscsnv = fields.ListField(
-        required=False, items_types=(DBscSNV,), help_text="dbNSFP dbscSNV"
-    )
-    ncbi_dbsnp = fields.ListField(
-        required=False, items_types=(DbSNP,), help_text="dbSNP"
-    )
-    sanger_cosmic = fields.ListField(
-        required=False, items_types=(Cosmic,), help_text="Sanger Cosmic"
-    )
-    sanger_cosmic_public = fields.ListField(
-        required=False, items_types=(CosmicPublic,), help_text="Cosmic"
-    )
-    sanger_cosmic_licensed = fields.ListField(
-        required=False, items_types=(CosmicLicensed,), help_text="Cosmic"
-    )
-    ncbi_clinvar2 = fields.ListField(
-        required=False, items_types=(ClinVar2,), help_text="ClinVar2"
-    )
-    icgc_somatic = fields.ListField(
-        required=False, items_types=(Somatic,), help_text="ICGC Somatic"
-    )
-    iarc_tp53_germline = fields.ListField(
-        required=False, items_types=(TP53Germline,), help_text="IARC TP53 Germline"
-    )
-    iarc_tp53_somatic = fields.ListField(
-        required=False, items_types=(TP53Somatic,), help_text="IARC TP53 Somatic"
-    )
-    pub_med_articles = DictField(required=False, help_text="PUBMED Articles")
-    uniprot_variants = fields.ListField(
-        required=False, items_types=(UniprotVariants,), help_text="UniProt variants"
-    )
-    wustl_civic = fields.ListField(
-        required=False, items_types=(Civic,), help_text="CIViC"
-    )
-    gwas = fields.ListField(required=False, items_types=(GWAS,), help_text="GWAS")
-    acmg_annotation = fields.EmbeddedField(
-        ACMG, required=False, nullable=True, help_text="ACMG Annotations"
-    )
 
     @property
-    def genes(self):
-        """
-
-        :return: list of genes
-        """
-        genes = []
+    def genes(self) -> list[str]:
+        """Return the deduplicated union of RefSeq and Ensembl gene symbols."""
+        genes: list[str] = []
         genes.extend(self.refseq_genes)
         genes.extend(self.ensembl_genes)
         return list(set(genes))
 
     @property
-    def refseq_genes(self):
-        """
-
-        :return: list of genes found in RefSeq transcripts
-        """
-        genes = []
-        for transcript in self.refseq_transcripts:
-            genes.extend(
-                [item.gene_symbol for item in transcript.items if item.gene_symbol]
-            )
+    def refseq_genes(self) -> list[str]:
+        """Return gene symbols extracted from RefSeq transcripts."""
+        genes: list[str] = []
+        if self.refseq_transcripts:
+            for transcript in self.refseq_transcripts:
+                if transcript.items:
+                    genes.extend(
+                        item.gene_symbol
+                        for item in transcript.items
+                        if item.gene_symbol
+                    )
         return genes
 
     @property
-    def ensembl_genes(self):
-        """
-
-        :return: list of genes found in Ensembl transcripts
-        """
-        genes = []
-        for transcript in self.ensembl_transcripts:
-            genes.extend(
-                [item.gene_symbol for item in transcript.items if item.gene_symbol]
-            )
+    def ensembl_genes(self) -> list[str]:
+        """Return gene symbols extracted from Ensembl transcripts."""
+        genes: list[str] = []
+        if self.ensembl_transcripts:
+            for transcript in self.ensembl_transcripts:
+                if transcript.items:
+                    genes.extend(
+                        item.gene_symbol
+                        for item in transcript.items
+                        if item.gene_symbol
+                    )
         return genes
 
     @property
-    def rs_ids(self):
-        """
-
-        :return: list of rsids (str)
-        """
-        rs_ids = []
-        for dbnsp_entry in self.ncbi_dbsnp:
-            rs_ids.extend(dbnsp_entry.rsid)
-        return ["rs%s" % rs_id for rs_id in rs_ids]
+    def rs_ids(self) -> list[str]:
+        """Return dbSNP RS identifiers prefixed with ``rs``."""
+        rs_ids: list[int] = []
+        if self.ncbi_dbsnp:
+            for dbsnp_entry in self.ncbi_dbsnp:
+                rs_ids.extend(dbsnp_entry.rsid)
+        return [f"rs{rs_id}" for rs_id in rs_ids]
 
     @property
-    def gnomad_exomes_af(self):
-        """
-        Returns the gnomad exomes af value.
-        :return: float gnomad exomes af
-        """
-        af = [gnomad_exomes.af for gnomad_exomes in self.gnomad_exomes]
-        return af[0] if af else None
-
-    @property
-    def gnomad_genomes_af(self):
-        """
-        Returns the gnomad genomes af value.
-        :return: float gnomad genomes af
-        """
-        af = [gnomad_genomes.af for gnomad_genomes in self.gnomad_genomes]
-        return af[0] if af else None
-
-    @property
-    def gnomad_exomes_an(self):
-        """
-
-        :return: int gnomad exomes an
-        """
-        an = [gnomad_exomes.an for gnomad_exomes in self.gnomad_exomes]
-        return an[0] if an else None
-
-    @property
-    def gnomad_genomes_an(self):
-        """
-        :return: int gnomad genomes an
-        """
-        an = [gnomad_genomes.an for gnomad_genomes in self.gnomad_genomes]
-        return an[0] if an else None
-
-    @property
-    def acmg_verdict(self):
-        """
-        :return: the acmg verdict for the variant
-        """
-        acmg_annotation = self.acmg_annotation
-        if acmg_annotation is not None and acmg_annotation.verdict is not None:
-            return acmg_annotation.verdict.ACMG_rules.verdict
+    def gnomad_exomes_af(self) -> float | str | None:
+        """Return the gnomAD exomes allele frequency, or None if unavailable."""
+        if self.gnomad_exomes:
+            af = [entry.af for entry in self.gnomad_exomes if entry.af is not None]
+            return af[0] if af else None
         return None
+
+    @property
+    def gnomad_genomes_af(self) -> float | str | None:
+        """Return the gnomAD genomes allele frequency, or None if unavailable."""
+        if self.gnomad_genomes:
+            af = [entry.af for entry in self.gnomad_genomes if entry.af is not None]
+            return af[0] if af else None
+        return None
+
+    @property
+    def gnomad_exomes_an(self) -> int | None:
+        """Return the gnomAD exomes allele number, or None if unavailable."""
+        if self.gnomad_exomes:
+            an = [entry.an for entry in self.gnomad_exomes if entry.an is not None]
+            return an[0] if an else None
+        return None
+
+    @property
+    def gnomad_genomes_an(self) -> int | None:
+        """Return the gnomAD genomes allele number, or None if unavailable."""
+        if self.gnomad_genomes:
+            an = [entry.an for entry in self.gnomad_genomes if entry.an is not None]
+            return an[0] if an else None
+        return None
+
+    @property
+    def acmg_verdict(self) -> str | None:
+        """Return the ACMG classification verdict string, or None."""
+        if (
+            self.acmg_annotation is not None
+            and self.acmg_annotation.verdict is not None
+            and self.acmg_annotation.verdict.acmg_rules is not None
+        ):
+            return self.acmg_annotation.verdict.acmg_rules.verdict
+        return None
+
+    @property
+    def acmg_rules(self) -> list[str]:
+        """Return the list of ACMG classification rule names, or an empty list."""
+        if (
+            self.acmg_annotation is not None
+            and self.acmg_annotation.verdict is not None
+        ):
+            return self.acmg_annotation.verdict.classifications
+        return []
+
+
+class AnnotatedVariant(VariantVariantApi, AnnotatedVariantPropertiesMixin):
+    """Variant annotation result with convenience accessors.
+
+    All fields from the OpenAPI ``variant_VariantApi`` schema are
+    available as typed attributes.  The computed ``@property`` methods
+    (provided by :class:`AnnotatedVariantPropertiesMixin`) offer
+    shortcuts for the most commonly needed derived values.
+
+    This model validates **every** field the API returns (via
+    ``extra="allow"`` on the base).  For performance-sensitive
+    pipelines, consider :class:`~varsome_api.models.slim.annotation.AnnotatedVariant`
+    which validates only the fields needed by the default
+    ``VCFAnnotator.annotate_record``, or use your own Pydantic model
+    """
+
+    pass

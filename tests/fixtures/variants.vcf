@@ -1,0 +1,67 @@
+##fileformat=VCFv4.1
+##FILTER=<ID=PASS,Description="All filters passed">
+##fileDate=2016-06-05
+##source=IlluminaPlatinumGenomes, version: 2016-1.0
+##reference=hg19
+##contig=<ID=chr1,length=249250621>
+##contig=<ID=chr2,length=243199373>
+##contig=<ID=chr3,length=198022430>
+##contig=<ID=chr4,length=191154276>
+##contig=<ID=chr5,length=180915260>
+##contig=<ID=chr6,length=171115067>
+##contig=<ID=chr7,length=159138663>
+##contig=<ID=chr8,length=146364022>
+##contig=<ID=chr9,length=141213431>
+##contig=<ID=chr10,length=135534747>
+##contig=<ID=chr11,length=135006516>
+##contig=<ID=chr12,length=133851895>
+##contig=<ID=chr13,length=115169878>
+##contig=<ID=chr14,length=107349540>
+##contig=<ID=chr15,length=102531392>
+##contig=<ID=chr16,length=90354753>
+##contig=<ID=chr17,length=81195210>
+##contig=<ID=chr18,length=78077248>
+##contig=<ID=chr19,length=59128983>
+##contig=<ID=chr20,length=63025520>
+##contig=<ID=chr21,length=48129895>
+##contig=<ID=chr22,length=51304566>
+##contig=<ID=chrX,length=155270560>
+##PEDIGREE=<Child=NA12877,Mother=NA12890,Father=NA12889>
+##PEDIGREE=<Child=NA12878,Mother=NA12892,Father=NA12891>
+##PEDIGREE=<Child=NA12879,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12880,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12881,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12882,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12883,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12884,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12885,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12886,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12887,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12888,Mother=NA12878,Father=NA12877>
+##PEDIGREE=<Child=NA12893,Mother=NA12878,Father=NA12877>
+##INFO=<ID=MTD,Number=.,Type=String,Description="Methods that call this site pedigree consistently.">
+##INFO=<ID=KM,Number=1,Type=String,Description="Minimum normalized k-mer counts">
+##INFO=<ID=KFP,Number=1,Type=Integer,Description="K-mer GT failures in the main pedigree">
+##INFO=<ID=KFF,Number=1,Type=Integer,Description="K-mer failures in the founders">
+##FORMAT=<ID=GT,Number=1,Type=String,Description="Genotype">
+#CHROM	POS	ID	REF	ALT	QUAL	FILTER	INFO	FORMAT	NA12877
+chr1	126113	.	C	A	.	PASS	MTD=isaac_strelka,bwa_freebayes,bwa_platypus,bwa_gatk;KM=17.27;KFP=0;KFF=0	GT	1|1
+chr1	535131	.	T	G	.	PASS	MTD=bwa_freebayes,bwa_gatk;KM=6.33;KFP=0;KFF=0	GT	1|0
+chr1	567239	.	CG	C	.	PASS	MTD=isaac_strelka,bwa_platypus,bwa_gatk;KM=11.15;KFP=0;KFF=0	GT	1|1
+chr1	570254	.	A	G	.	PASS	MTD=bwa_gatk;KM=14.00;KFP=0;KFF=0	GT	1|0
+chr1	592368	.	A	G	.	PASS	MTD=bwa_freebayes;KM=12.67;KFP=0;KFF=0	GT	1|0
+chr1	610426	.	A	G	.	PASS	MTD=bwa_freebayes;KM=6.67;KFP=0;KFF=0	GT	1|0
+chr1	628140	.	T	C	.	PASS	MTD=bwa_freebayes;KM=5.00;KFP=0;KFF=0	GT	0|1
+chr1	645605	.	T	A	.	PASS	MTD=bwa_gatk;KM=14.77;KFP=0;KFF=0	GT	1|1
+chr1	649192	.	A	T	.	PASS	MTD=bwa_freebayes,bwa_gatk;KM=8.00;KFP=0;KFF=0	GT	0|1
+chr1	662414	.	C	T	.	PASS	MTD=bwa_gatk;KM=6.71;KFP=0;KFF=0	GT	0|1
+chr1	662622	.	G	A	.	PASS	MTD=isaac_strelka,bwa_freebayes,bwa_platypus,bwa_gatk;KM=9.86;KFP=0;KFF=0	GT	0|1
+chr1	662857	.	G	A	.	PASS	MTD=bwa_gatk;KM=6.95;KFP=0;KFF=0	GT	1|0
+chr1	663097	.	G	C	.	PASS	MTD=bwa_platypus,bwa_gatk;KM=11.32;KFP=0;KFF=0	GT	1|0
+chr1	665266	.	T	C	.	PASS	MTD=bwa_freebayes,bwa_gatk;KM=9.29;KFP=0;KFF=0	GT	0|1
+chr1	672232	.	C	T	.	PASS	MTD=bwa_freebayes,bwa_gatk;KM=12.14;KFP=0;KFF=0	GT	0|1
+chr1	693731	.	A	G	.	PASS	MTD=bwa_freebayes,bwa_platypus,bwa_gatk;KM=12.11;KFP=0;KFF=0	GT	0|1
+chr1	693823	.	G	C	.	PASS	MTD=bwa_freebayes,bwa_gatk;KM=9.86;KFP=0;KFF=0	GT	0|1
+chr1	703255	.	C	T	.	PASS	MTD=bwa_freebayes;KM=6.50;KFP=0;KFF=0	GT	1|0
+chr1	704367	.	T	C	.	PASS	MTD=isaac_strelka,bwa_freebayes,bwa_platypus,bwa_gatk;KM=2.69;KFP=2;KFF=0	GT	1|1
+chr1	706368	.	A	G	.	PASS	MTD=bwa_platypus,bwa_gatk;KM=9.37;KFP=0;KFF=0	GT	1|0

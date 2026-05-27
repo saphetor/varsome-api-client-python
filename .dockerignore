@@ -159,3 +159,15 @@ cython_debug/
 
 .idea
 .envrc
+
+# Test files
+tests/
+
+# Documentation files
+docs/
+
+# Example files
+examples/
+
+# Github Actions
+.github/
