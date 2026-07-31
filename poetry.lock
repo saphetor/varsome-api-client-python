@@ -989,23 +989,23 @@ commitizen = ">=4.7.2"
 
 [[package]]
 name = "datamodel-code-generator"
-version = "0.58.0"
+version = "0.64.0"
 description = "Datamodel Code Generator"
 optional = false
 python-versions = ">=3.10"
 groups = ["dev"]
 files = [
-    {file = "datamodel_code_generator-0.58.0-py3-none-any.whl", hash = "sha256:73c4feb12bf773e280eb721b7968a5d5dbb953be2a700bf70995ba442abd0a57"},
-    {file = "datamodel_code_generator-0.58.0.tar.gz", hash = "sha256:14b157b26ca85b8dfc2fdf2ada242f003937a130375892003067a4fdf046021c"},
+    {file = "datamodel_code_generator-0.64.0-py3-none-any.whl", hash = "sha256:b7cd8bd41a312aa997aec6150670bad781847c5b674f17e4d70e78208a0fb990"},
+    {file = "datamodel_code_generator-0.64.0.tar.gz", hash = "sha256:9c592900a00b20e416494273c22435f5a9aef6ea8c7b9190747522a60497a1cb"},
 ]
 
 [package.dependencies]
 argcomplete = ">=2.10.1,<4"
-black = ">=19.10b0"
+black = {version = ">=19.10b0", markers = "sys_platform != \"emscripten\""}
 genson = ">=1.2.1,<2"
 httpx = {version = ">=0.24.1", optional = true, markers = "extra == \"http\""}
 inflect = ">=4.1,<8"
-isort = ">=4.3.21,<9"
+isort = {version = ">=4.3.21,<9", markers = "sys_platform != \"emscripten\""}
 jinja2 = ">=2.10.1,<4"
 pydantic = [
     {version = ">=2,<3", markers = "python_version < \"3.14\""},
@@ -1014,10 +1014,11 @@ pydantic = [
 pyyaml = ">=6.0.1"
 
 [package.extras]
-all = ["graphql-core (>=3.2.3)", "httpx (>=0.24.1)", "openapi-spec-validator (>=0.2.8,<0.8)", "prance (>=0.18.2)", "pysnooper (>=0.4.1,<2)", "ruff (>=0.9.10)", "watchfiles (>=1.1)"]
+all = ["graphql-core (>=3.2.3)", "grpcio-tools (>=1.62,<2)", "httpx (>=0.24.1)", "openapi-spec-validator (>=0.2.8,<0.8)", "prance (>=0.18.2)", "pysnooper (>=0.4.1,<2)", "ruff (>=0.9.10)", "watchfiles (>=1.1)"]
 debug = ["pysnooper (>=0.4.1,<2)"]
 graphql = ["graphql-core (>=3.2.3)"]
 http = ["httpx (>=0.24.1)"]
+protobuf = ["grpcio-tools (>=1.62,<2)"]
 ruff = ["ruff (>=0.9.10)"]
 ryaml = ["ryaml (>=0.5.1)"]
 validation = ["openapi-spec-validator (>=0.2.8,<0.8)", "prance (>=0.18.2)"]
@@ -2909,4 +2910,4 @@ vcf = ["pysam"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.11, <3.15"
-content-hash = "b0e1019e45f2e44671c7979424ef3c48cb0667e478fa8487c78a12c9dd29514d"
+content-hash = "6c88b793de802ffcb03cbbc9bc36a7bf16a83b37c39fa3f75da608df7e9d6198"
