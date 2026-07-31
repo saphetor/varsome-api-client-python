@@ -44,7 +44,7 @@ requests-mock = "^1.12"
 pre-commit = "^4.5.0"
 commitizen = "^4.13.0"
 cz-github-jira-conventional = "^3.0.0"
-datamodel-code-generator = {version = ">=0.55", extras = ["http"]}
+datamodel-code-generator = {version = ">=0.64.0", extras = ["http"]}
 pyyaml = "^6.0"
 pytest-asyncio = "^1.3"
 
