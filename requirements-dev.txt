@@ -397,9 +397,9 @@ coverage[toml]==7.14.1 ; python_version >= "3.11" and python_version < "3.15" \
 cz-github-jira-conventional==3.0.2 ; python_version >= "3.11" and python_version < "3.15" \
     --hash=sha256:606ac5436de40183cc93f932329e053dd80b1bbfa0ffc7dee1cf0619b35385ca \
     --hash=sha256:c06e91aaa01007d094d7397a9bc1a47f06afeac0d626332f7bfd38a2291b3cf7
-datamodel-code-generator[http]==0.58.0 ; python_version >= "3.11" and python_version < "3.15" \
-    --hash=sha256:14b157b26ca85b8dfc2fdf2ada242f003937a130375892003067a4fdf046021c \
-    --hash=sha256:73c4feb12bf773e280eb721b7968a5d5dbb953be2a700bf70995ba442abd0a57
+datamodel-code-generator[http]==0.64.0 ; python_version >= "3.11" and python_version < "3.15" \
+    --hash=sha256:9c592900a00b20e416494273c22435f5a9aef6ea8c7b9190747522a60497a1cb \
+    --hash=sha256:b7cd8bd41a312aa997aec6150670bad781847c5b674f17e4d70e78208a0fb990
 decli==0.6.3 ; python_version >= "3.11" and python_version < "3.15" \
     --hash=sha256:5152347c7bb8e3114ad65db719e5709b28d7f7f45bdb709f70167925e55640f3 \
     --hash=sha256:87f9d39361adf7f16b9ca6e3b614badf7519da13092f2db3c80ca223c53c7656
