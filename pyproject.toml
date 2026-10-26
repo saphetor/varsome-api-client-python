@@ -33,7 +33,7 @@ pysam = {version = "^0.23", optional = true}
 vcf = ["pysam"]
 
 [tool.poetry.dev-dependencies]
-black = "^26.3.0"
+black = "^26.10.1"
 pysam = "^0.23"
 isort = "^8.0.0"
 flake8 = "^7.3.0"
